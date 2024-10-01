@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-skia-safe = "0.78.0"
+skia-safe = { version = "0.78.0", features = ["gl"] }
 winit = "0.30.5"
 surf = "2.3.1"
 async-std = "1.10"
