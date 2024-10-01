@@ -1,0 +1,12 @@
+[package]
+name = "cartan"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+skia-safe = "0.78.0"
+winit = "0.30.5"
+surf = "2.3.1"
+async-std = "1.10"
+
+kuchiki = "0.8"
