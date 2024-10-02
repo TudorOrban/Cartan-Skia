@@ -16,7 +16,7 @@ impl Button {
 }
 
 impl Element for Button {
-    fn render(&self, canvas: &mut Canvas) {
+    fn render(&self, canvas: &Canvas) {
         let mut paint = Paint::default();
         paint.set_color(self.color);
         paint.set_anti_alias(true);

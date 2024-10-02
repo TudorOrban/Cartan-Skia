@@ -1,5 +1,6 @@
 // src/rendering/mod.rs
 
+use browser::ui_manager::UIManager;
 use skia_safe::{
     gpu::{self, gl::FramebufferInfo, SurfaceOrigin},
     ColorType, Surface,
@@ -9,26 +10,33 @@ use skia_safe::gpu::DirectContext;
 
 pub mod browser;
 
+pub struct WebPageRenderer {
+
+}
+
 pub struct Renderer {
     pub surface: Surface,
+    pub ui_manager: UIManager,
+    pub web_page_renderer: WebPageRenderer
 }
 
 impl Renderer {
     pub fn new(surface: Surface) -> Self {
-        Self { surface }
+        Self { 
+            surface ,
+            ui_manager: UIManager::new(),
+            web_page_renderer: WebPageRenderer {}
+        }
     }
 
     pub fn render_frame(&mut self, _gr_context: &mut DirectContext) {
         let canvas = self.surface.canvas();
         canvas.clear(skia_safe::Color::WHITE);
 
-        // Draw a red rectangle
-        let mut paint = skia_safe::Paint::default();
-        paint.set_color(skia_safe::Color::RED);
-        paint.set_anti_alias(true);
+        self.ui_manager.render(canvas);
 
-        let rect = skia_safe::Rect::from_xywh(50.0, 50.0, 200.0, 200.0);
-        canvas.draw_rect(rect, &paint);
+        // Web page content rendering
+        // self.web_page_renderer.render(canvas);
     }
 }
 

@@ -1,12 +1,12 @@
 // src/app/mod.rs
 
-use crate::rendering::browser::elements::button::Button;
+use crate::rendering::browser::elements::element::EventType;
 use crate::rendering::{create_surface, Renderer};
 use crate::window::WindowingSystem;
 use glutin::surface::GlSurface;
 use glutin::config::GlConfig;
 use skia_safe::gpu::gl::FramebufferInfo;
-use skia_safe::{Color, Point, Rect};
+use skia_safe::Point;
 use std::num::NonZeroU32;
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, KeyEvent, Modifiers, MouseButton, WindowEvent};
@@ -17,7 +17,6 @@ pub struct Application {
     pub fb_info: FramebufferInfo,
     pub renderer: Renderer,
     pub modifiers: Modifiers,
-    pub button: Button,
     pub mouse_position: Option<Point>,
 }
 
@@ -32,19 +31,12 @@ impl Application {
         );
 
         let renderer = Renderer::new(surface);
-
-        let button = Button::new(
-            Rect::from_xywh(50.0, 50.0, 200.0, 100.0),
-            Color::BLUE,
-            Box::new(|| println!("Button clicked")),
-        );
         
         Self {
             windowing,
             fb_info,
             renderer,
             modifiers: Modifiers::default(),
-            button,
             mouse_position: None,
         }
     }
@@ -92,8 +84,7 @@ impl ApplicationHandler for Application {
             WindowEvent::MouseInput { state, button, .. } => {
                 if let (ElementState::Pressed, MouseButton::Left) = (state, button) {
                     if let Some(mouse_position) = self.mouse_position {
-                        // Assuming we have a button in renderer that we can call `handle_click` on
-                        self.button.handle_event(mouse_position, );
+                        self.renderer.ui_manager.handle_event(mouse_position, EventType::MouseClick);
                         self.windowing.window.request_redraw();
                     }
                 }
