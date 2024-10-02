@@ -21,3 +21,9 @@ pub struct ElementSize {
     pub width: f32,
     pub height: f32,
 }
+
+impl Default for ElementSize {
+    fn default() -> Self {
+        Self { width: 0.0, height: 0.0 }
+    }
+}

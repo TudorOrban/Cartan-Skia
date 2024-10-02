@@ -26,8 +26,8 @@ pub struct WindowingSystem {
 impl WindowingSystem {
     pub fn new(event_loop: &EventLoop<()>) -> Self {
         let window_attributes = WindowAttributes::default()
-            .with_title("rust-skia-gl-window")
-            .with_inner_size(LogicalSize::new(800, 800));
+            .with_title("Cartan")
+            .with_inner_size(LogicalSize::new(1200, 800));
 
         let template = ConfigTemplateBuilder::new()
             .with_alpha_size(8)

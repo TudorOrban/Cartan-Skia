@@ -34,6 +34,42 @@ impl Button {
         }
         self
     }
+    
+    #[allow(dead_code)]
+    pub fn set_size(mut self, size: ElementSize) -> Self {
+        self.size = size;
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn set_position(&mut self, position: Point) -> &mut Self {
+        self.position = position;
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn set_on_click(mut self, on_click: Box<dyn FnMut()>) -> Self {
+        self.on_click = on_click;
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn set_margin(mut self, margin: super::styles::Margin) -> Self {
+        self.styles.margin = Some(margin);
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn set_padding(mut self, padding: super::styles::Padding) -> Self {
+        self.styles.padding = Some(padding);
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn set_color(mut self, color: skia_safe::Color) -> Self {
+        self.styles.color = Some(color);
+        self
+    }
 
     pub fn rect(&self) -> Rect {
         let width = if let Some(size) = &self.styles.size { size.width } else { 0.0 };

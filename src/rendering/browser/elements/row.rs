@@ -1,6 +1,6 @@
 use skia_safe::Point;
 
-use super::{element::{Element, ElementSize, EventType}, styles::{RowItemsAlignment, Styles}};
+use super::{element::{Element, ElementSize, EventType}, styles::{RowItemsAlignment, Spacing, Styles}};
 
 
 pub struct Row {
@@ -59,6 +59,25 @@ impl Row {
 
             cursor_x += child_size.width + spacing_x;
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn set_position(mut self, position: Point) -> Self {
+        self.position = position;
+        self.layout();
+        self
+    }
+
+    pub fn set_spacing(mut self, spacing: Spacing) -> Self {
+        self.styles.spacing = Some(spacing);
+        self.layout();
+        self
+    }
+
+    pub fn set_alignment(mut self, alignment: RowItemsAlignment) -> Self {
+        self.styles.alignment = Some(alignment);
+        self.layout();
+        self
     }
     
     fn get_spacing_x(&self) -> f32 {
