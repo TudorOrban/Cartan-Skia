@@ -26,7 +26,7 @@ impl Element for Button {
 
     fn update(&mut self) {}
     
-    fn handle_event(&mut self, cursor_position: Point, event_type: EventType) {
+    fn handle_event(&mut self, cursor_position: Point, event_type: &EventType) {
         match event_type {
             EventType::MouseClick if self.rect.contains(cursor_position) => (self.on_click)(),
             _ => (),

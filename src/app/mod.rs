@@ -1,10 +1,9 @@
 // src/app/mod.rs
 
 use crate::rendering::browser::elements::element::EventType;
-use crate::rendering::{create_surface, Renderer};
+use crate::rendering::renderer::Renderer;
 use crate::window::WindowingSystem;
 use glutin::surface::GlSurface;
-use glutin::config::GlConfig;
 use skia_safe::gpu::gl::FramebufferInfo;
 use skia_safe::Point;
 use std::num::NonZeroU32;
@@ -22,15 +21,7 @@ pub struct Application {
 
 impl Application {
     pub fn new(mut windowing: WindowingSystem, fb_info: FramebufferInfo) -> Self {
-        let surface = create_surface(
-            &windowing.window,
-            fb_info,
-            &mut windowing.gr_context,
-            windowing.gl_config.num_samples() as usize,
-            windowing.gl_config.stencil_size() as usize,
-        );
-
-        let renderer = Renderer::new(surface);
+        let renderer = Renderer::new(&mut windowing, fb_info);
         
         Self {
             windowing,
@@ -66,14 +57,9 @@ impl ApplicationHandler for Application {
                     NonZeroU32::new(height.max(1)).unwrap(),
                 );
 
-                // Update Skia surface with new size
-                self.renderer = Renderer::new(crate::rendering::create_surface(
-                    &self.windowing.window,
-                    self.fb_info,
-                    &mut self.windowing.gr_context,
-                    self.windowing.gl_config.num_samples() as usize,
-                    self.windowing.gl_config.stencil_size() as usize,
-                ));
+                // // Update Skia surface with new size
+                // self.renderer = Renderer::new(&mut windowing, fb_info);
+        
 
                 // Request a redraw after resizing
                 self.windowing.window.request_redraw();
@@ -84,7 +70,7 @@ impl ApplicationHandler for Application {
             WindowEvent::MouseInput { state, button, .. } => {
                 if let (ElementState::Pressed, MouseButton::Left) = (state, button) {
                     if let Some(mouse_position) = self.mouse_position {
-                        self.renderer.ui_manager.handle_event(mouse_position, EventType::MouseClick);
+                        self.renderer.handle_event(mouse_position, EventType::MouseClick);
                         self.windowing.window.request_redraw();
                     }
                 }

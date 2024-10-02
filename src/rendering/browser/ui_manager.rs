@@ -25,7 +25,7 @@ impl UIManager {
         self.root_element.update();
     }
 
-    pub fn handle_event(&mut self, cursor_position: skia_safe::Point, event_type: EventType) {
+    pub fn handle_event(&mut self, cursor_position: skia_safe::Point, event_type: &EventType) {
         self.root_element.handle_event(cursor_position, event_type);
     }
 }
