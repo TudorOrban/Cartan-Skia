@@ -1,35 +1,43 @@
-use skia_safe::{Canvas, Color, Contains, Paint, Point, Rect};
+use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
-use super::element::{Element, ElementSize, EventType};
+use super::{element::{Element, ElementSize, EventType}, styles::Styles};
 
 
 pub struct Button {
     pub position: Point,
     pub size: ElementSize,
-    pub color: Color,
+    pub styles: Styles,
     pub on_click: Box<dyn FnMut()>,
 }
 
 impl Button {
-    pub fn new(size: ElementSize, color: Color, on_click: Box<dyn FnMut()>) -> Self {
+    pub fn new(styles: Styles, on_click: Box<dyn FnMut()>) -> Self {
+        let size = if let Some(size) = &styles.size {
+            size.clone()
+        } else {
+            ElementSize { width: 0.0, height: 0.0 }
+        };
+
         Self { 
             position: Point::new(0.0, 0.0), 
-            size, 
-            color,
+            size,
+            styles,
             on_click 
         }
     }
 
     pub fn rect(&self) -> Rect {
-        Rect::from_point_and_size(self.position, (self.size.width, self.size.height))
+        let width = if let Some(size) = &self.styles.size { size.width } else { 0.0 };
+        let height = if let Some(size) = &self.styles.size { size.height } else { 0.0 };
+        Rect::from_point_and_size(self.position, (width, height))
     }
 }
 
 impl Element for Button {
     fn render(&self, canvas: &Canvas) {
         let mut paint = Paint::default();
-        paint.set_color(self.color);
         paint.set_anti_alias(true);
+        paint.set_color(if let Some(color) = &self.styles.color { *color } else { skia_safe::Color::WHITE });
 
         let rect = self.rect();
         canvas.draw_rect(rect, &paint);

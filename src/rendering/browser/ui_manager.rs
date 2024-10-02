@@ -9,37 +9,48 @@ impl UIManager {
     pub fn new() -> Self {
         let row_children: Vec<Box<dyn Element>> = vec![
             Box::new(Button::new(
-                ElementSize {
-                    width: 100.0,
-                    height: 50.0,
+                Styles {
+                    spacing: None,
+                    size: Some(ElementSize {
+                        width: 100.0,
+                        height: 50.0,
+                    }),
+                    color: Some(skia_safe::Color::from_argb(255, 255, 0, 0)),
                 },
-                skia_safe::Color::from_argb(255, 255, 0, 0),
                 Box::new(|| println!("Button 1 clicked")),
             )),
             Box::new(Button::new(
-                ElementSize {
-                    width: 200.0,
-                    height: 80.0,
+                Styles {
+                    spacing: None,
+                    size: Some(ElementSize {
+                        width: 75.0,
+                        height: 75.0,
+                    }),
+                    color: Some(skia_safe::Color::from_argb(255, 0, 255, 0)),
                 },
-                skia_safe::Color::from_argb(255, 0, 255, 0),
                 Box::new(|| println!("Button 2 clicked")),
             )),
             Box::new(Button::new(
-                ElementSize {
-                    width: 80.0,
-                    height: 120.0,
+                Styles {
+                    spacing: None,
+                    size: Some(ElementSize {
+                        width: 50.0,
+                        height: 100.0,
+                    }),
+                    color: Some(skia_safe::Color::from_argb(255, 0, 0, 255)),
                 },
-                skia_safe::Color::from_argb(255, 0, 0, 255),
                 Box::new(|| println!("Button 3 clicked")),
             )),
         ];
         let test_row = Row::new()
             .add_children(row_children)
             .set_styles(Styles {
-                spacing: Spacing {
+                spacing: Some(Spacing {
                     spacing_x: 10.0,
                     spacing_y: 20.0,
-                }
+                }),
+                size: None,
+                color: None,
             });
         let root_element: Box<dyn Element> = Box::new(test_row);
 

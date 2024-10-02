@@ -1,15 +1,26 @@
+use skia_safe::Color;
+
+use super::element::ElementSize;
+
 
 pub struct Styles {
-    pub spacing: Spacing,
+    pub spacing: Option<Spacing>,
+    pub size: Option<ElementSize>,
+    pub color: Option<Color>,
 }
 
 impl Default for Styles {
     fn default() -> Self {
         Self {
-            spacing: Spacing {
+            spacing: Some(Spacing {
                 spacing_x: 0.0,
                 spacing_y: 0.0,
-            },
+            }),
+            size: Some(ElementSize {
+                width: 0.0,
+                height: 0.0,
+            }),
+            color: Some(Color::WHITE),
         }
     }
 }
