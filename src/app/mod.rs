@@ -9,7 +9,7 @@ use skia_safe::gpu::gl::FramebufferInfo;
 use skia_safe::{Color, Point, Rect};
 use std::num::NonZeroU32;
 use winit::application::ApplicationHandler;
-use winit::event::{DeviceId, ElementState, KeyEvent, Modifiers, MouseButton, WindowEvent};
+use winit::event::{ElementState, KeyEvent, Modifiers, MouseButton, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
 
 pub struct Application {
@@ -18,7 +18,6 @@ pub struct Application {
     pub renderer: Renderer,
     pub modifiers: Modifiers,
     pub button: Button,
-    pub frame: usize,
     pub mouse_position: Option<Point>,
 }
 
@@ -46,7 +45,6 @@ impl Application {
             renderer,
             modifiers: Modifiers::default(),
             button,
-            frame: 0,
             mouse_position: None,
         }
     }
@@ -95,7 +93,7 @@ impl ApplicationHandler for Application {
                 if let (ElementState::Pressed, MouseButton::Left) = (state, button) {
                     if let Some(mouse_position) = self.mouse_position {
                         // Assuming we have a button in renderer that we can call `handle_click` on
-                        self.button.handle_click(mouse_position.x, mouse_position.y);
+                        self.button.handle_event(mouse_position, );
                         self.windowing.window.request_redraw();
                     }
                 }
