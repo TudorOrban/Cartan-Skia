@@ -1,43 +1,53 @@
+use std::{
+    ffi::CString,
+    num::NonZeroU32,
+};
 
-// cargo 1.45.1 / rustfmt 1.4.17-stable fails to process the relative path on Windows.
-#[rustfmt::skip]
-#[path = "icon/renderer.rs"]
-mod renderer;
+use gl::types::*;
+use gl_rs as gl;
+use glutin::{
+    config::{ConfigTemplateBuilder, GlConfig},
+    context::{ContextApi, ContextAttributesBuilder, PossiblyCurrentContext},
+    display::{GetGlDisplay, GlDisplay},
+    prelude::{GlSurface, NotCurrentGlContext},
+    surface::{Surface as GlutinSurface, SurfaceAttributesBuilder, WindowSurface},
+};
+use glutin_winit::DisplayBuilder;
+#[allow(deprecated)]
+use raw_window_handle::HasRawWindowHandle;
+use winit::{
+    application::ApplicationHandler,
+    dpi::LogicalSize,
+    event::{KeyEvent, Modifiers, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::{Window, WindowAttributes},
+};
 
+use skia_safe::{
+    gpu::{self, backend_render_targets, gl::FramebufferInfo, SurfaceOrigin},
+    ColorType, Surface,
+};
+
+struct Application {
+    env: Env,
+    fb_info: FramebufferInfo,
+    num_samples: usize,
+    stencil_size: usize,
+    modifiers: Modifiers,
+    frame: usize,
+}
+
+struct Env {
+    surface: Surface,
+    gl_surface: GlutinSurface<WindowSurface>,
+    gr_context: skia_safe::gpu::DirectContext,
+    gl_context: PossiblyCurrentContext,
+    window: Window,
+}
 
 fn main() {
-    use std::{
-        ffi::CString,
-        num::NonZeroU32,
-        time::{Duration, Instant},
-    };
-    
-    use gl::types::*;
-    use gl_rs as gl;
-    use glutin::{
-        config::{ConfigTemplateBuilder, GlConfig},
-        context::{ContextApi, ContextAttributesBuilder, PossiblyCurrentContext},
-        display::{GetGlDisplay, GlDisplay},
-        prelude::{GlSurface, NotCurrentGlContext},
-        surface::{Surface as GlutinSurface, SurfaceAttributesBuilder, WindowSurface},
-    };
-    use glutin_winit::DisplayBuilder;
-    #[allow(deprecated)]
-    use raw_window_handle::HasRawWindowHandle;
-    use winit::{
-        application::ApplicationHandler,
-        dpi::LogicalSize,
-        event::{KeyEvent, Modifiers, WindowEvent},
-        event_loop::{ControlFlow, EventLoop},
-        window::{Window, WindowAttributes},
-    };
-
-    use skia_safe::{
-        gpu::{self, backend_render_targets, gl::FramebufferInfo, SurfaceOrigin},
-        Color, ColorType, Surface,
-    };
-
-    let el = EventLoop::new().expect("Failed to create event loop");
+    let event_loop = EventLoop::new()
+        .expect("Failed to create event loop");
 
     let window_attributes = WindowAttributes::default()
         .with_title("rust-skia-gl-window")
@@ -49,11 +59,7 @@ fn main() {
 
     let display_builder = DisplayBuilder::new().with_window_attributes(window_attributes.into());
     let (window, gl_config) = display_builder
-        .build(&el, template, |configs| {
-            // Find the config with the minimum number of samples. Usually Skia takes care of
-            // anti-aliasing and may not be able to create appropriate Surfaces for samples > 0.
-            // See https://github.com/rust-skia/rust-skia/issues/782
-            // And https://github.com/rust-skia/rust-skia/issues/764
+        .build(&event_loop, template, |configs| {
             configs
                 .reduce(|accum, config| {
                     let transparency_check = config.supports_transparency().unwrap_or(false)
@@ -68,20 +74,18 @@ fn main() {
                 .unwrap()
         })
         .unwrap();
-    println!("Picked a config with {} samples", gl_config.num_samples());
-    let window = window.expect("Could not create window with OpenGL context");
+
+    let window = window
+        .expect("Could not create window with OpenGL context");
+
     #[allow(deprecated)]
     let raw_window_handle = window
         .raw_window_handle()
         .expect("Failed to retrieve RawWindowHandle");
 
-    // The context creation part. It can be created before surface and that's how
-    // it's expected in multithreaded + multiwindow operation mode, since you
-    // can send NotCurrentContext, but not Surface.
-    let context_attributes = ContextAttributesBuilder::new().build(Some(raw_window_handle));
+    let context_attributes = ContextAttributesBuilder::new()
+        .build(Some(raw_window_handle));
 
-    // Since glutin by default tries to create OpenGL core context, which may not be
-    // present we should try gles.
     let fallback_context_attributes = ContextAttributesBuilder::new()
         .with_context_api(ContextApi::Gles(None))
         .build(Some(raw_window_handle));
@@ -145,75 +149,24 @@ fn main() {
         }
     };
 
-    fn create_surface(
-        window: &Window,
-        fb_info: FramebufferInfo,
-        gr_context: &mut skia_safe::gpu::DirectContext,
-        num_samples: usize,
-        stencil_size: usize,
-    ) -> Surface {
-        let size = window.inner_size();
-        let size = (
-            size.width.try_into().expect("Could not convert width"),
-            size.height.try_into().expect("Could not convert height"),
-        );
-        let backend_render_target =
-            backend_render_targets::make_gl(size, num_samples, stencil_size, fb_info);
-
-        gpu::surfaces::wrap_backend_render_target(
-            gr_context,
-            &backend_render_target,
-            SurfaceOrigin::BottomLeft,
-            ColorType::RGBA8888,
-            None,
-            None,
-        )
-        .expect("Could not create skia surface")
-    }
-
     let num_samples = gl_config.num_samples() as usize;
     let stencil_size = gl_config.stencil_size() as usize;
 
     let surface = create_surface(&window, fb_info, &mut gr_context, num_samples, stencil_size);
 
-    // Guarantee the drop order inside the FnMut closure. `Window` _must_ be dropped after
-    // `DirectContext`.
-    //
-    // <https://github.com/rust-skia/rust-skia/issues/476>
-    struct Env {
-        surface: Surface,
-        gl_surface: GlutinSurface<WindowSurface>,
-        gr_context: skia_safe::gpu::DirectContext,
-        gl_context: PossiblyCurrentContext,
-        window: Window,
-    }
-
-    let env = Env {
-        surface,
-        gl_surface,
-        gl_context,
-        gr_context,
-        window,
-    };
-
-    struct Application {
-        env: Env,
-        fb_info: FramebufferInfo,
-        num_samples: usize,
-        stencil_size: usize,
-        modifiers: Modifiers,
-        frame: usize,
-        previous_frame_start: Instant,
-    }
-
     let mut application = Application {
-        env,
+        env: Env {
+            surface,
+            gl_surface,
+            gl_context,
+            gr_context,
+            window,
+        },
         fb_info,
         num_samples,
         stencil_size,
         modifiers: Modifiers::default(),
         frame: 0,
-        previous_frame_start: Instant::now(),
     };
 
     impl ApplicationHandler for Application {
@@ -235,9 +188,6 @@ fn main() {
             _window_id: winit::window::WindowId,
             event: WindowEvent,
         ) {
-            let mut draw_frame = false;
-            let frame_start = Instant::now();
-
             match event {
                 WindowEvent::CloseRequested => {
                     event_loop.exit();
@@ -277,30 +227,36 @@ fn main() {
                 _ => (),
             }
 
-            let expected_frame_length_seconds = 1.0 / 20.0;
-            let frame_duration = Duration::from_secs_f32(expected_frame_length_seconds);
-
-            if frame_start - self.previous_frame_start > frame_duration {
-                draw_frame = true;
-                self.previous_frame_start = frame_start;
-            }
-            if draw_frame {
-                self.frame += 1;
-                let canvas = self.env.surface.canvas();
-                canvas.clear(Color::WHITE);
-                renderer::render_frame(self.frame % 360, 12, 60, canvas);
-                self.env.gr_context.flush_and_submit();
-                self.env
-                    .gl_surface
-                    .swap_buffers(&self.env.gl_context)
-                    .unwrap();
-            }
-
-            event_loop.set_control_flow(ControlFlow::WaitUntil(
-                self.previous_frame_start + frame_duration,
-            ));
+            event_loop.set_control_flow(ControlFlow::Wait);
         }
     }
 
-    el.run_app(&mut application).expect("run() failed");
+    event_loop.run_app(&mut application).expect("run() failed");
+}
+
+
+fn create_surface(
+    window: &Window,
+    fb_info: FramebufferInfo,
+    gr_context: &mut skia_safe::gpu::DirectContext,
+    num_samples: usize,
+    stencil_size: usize,
+) -> Surface {
+    let size = window.inner_size();
+    let size = (
+        size.width.try_into().expect("Could not convert width"),
+        size.height.try_into().expect("Could not convert height"),
+    );
+    let backend_render_target =
+        backend_render_targets::make_gl(size, num_samples, stencil_size, fb_info);
+
+    gpu::surfaces::wrap_backend_render_target(
+        gr_context,
+        &backend_render_target,
+        SurfaceOrigin::BottomLeft,
+        ColorType::RGBA8888,
+        None,
+        None,
+    )
+    .expect("Could not create skia surface")
 }
