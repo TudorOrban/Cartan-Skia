@@ -6,10 +6,18 @@ pub trait Element {
     #[allow(dead_code)]
     fn update(&mut self);
     fn handle_event(&mut self, cursor_position: Point, event_type: &EventType);
+    fn set_position(&mut self, position: Point);
+    fn get_size(&self) -> ElementSize;
 }
 
 pub enum EventType {
     MouseClick,
     MouseMove,
     KeyPress(char),
+}
+
+#[derive(Clone)]
+pub struct ElementSize {
+    pub width: f32,
+    pub height: f32,
 }
