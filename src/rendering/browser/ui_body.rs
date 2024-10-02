@@ -1,5 +1,5 @@
 
-use super::elements::{button::Button, element::{Element, ElementSize}, row::Row, styles::{Border, Margin, Padding, RowItemsAlignment, Spacing, Styles}};
+use super::elements::{button::Button, element::Element, row::Row, styles::{Border, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
 
 
 pub fn get_ui_body() -> Box<dyn Element> {
@@ -7,7 +7,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
         Box::new(
             Button::new(None, Box::new(|| println!("Button 1 clicked")))
                 .set_styles(Styles {
-                    size: Some(ElementSize { width: 50.0, height: 100.0 }),
+                    size: Some(Size { width: Some(50.0), height: Some(100.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 255, 0, 0)),
                     ..Default::default()
                 })
@@ -15,7 +15,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
         Box::new(
             Button::new(None, Box::new(|| println!("Button 3 clicked")))
                 .set_styles(Styles {
-                    size: Some(ElementSize { width: 75.0, height: 75.0 }),
+                    size: Some(Size { width: Some(75.0), height: Some(75.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 0, 255, 0)),
                     ..Default::default()
                 })
@@ -23,7 +23,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
         Box::new(
             Button::new(None, Box::new(|| println!("Button 3 clicked")))
                 .set_styles(Styles {
-                    size: Some(ElementSize { width: 100.0, height: 50.0 }),
+                    size: Some(Size { width: Some(100.0), height: Some(50.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 0, 0, 255)),
                     ..Default::default()
                 })
@@ -53,7 +53,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
         Box::new(
             Button::new(None, Box::new(|| println!("Button 4 clicked")))
                 .set_styles(Styles {
-                    size: Some(ElementSize { width: 40.0, height: 60.0 }),
+                    size: Some(Size { width: Some(40.0), height: Some(60.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 255, 255, 0)),
                     ..Default::default()
                 })
@@ -61,7 +61,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
         Box::new(
             Button::new(None, Box::new(|| println!("Button 5 clicked")))
                 .set_styles(Styles {
-                    size: Some(ElementSize { width: 20.0, height: 40.0 }),
+                    size: Some(Size { width: Some(20.0), height: Some(40.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 0, 255, 255)),
                     ..Default::default()
                 })

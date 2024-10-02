@@ -90,6 +90,10 @@ impl Row {
         self.size.width = cursor_x - self.position.x + padding.right + margin.right + border.width;
         self.size.height = max_height + padding.top + padding.bottom + margin.top + margin.bottom + 2.0 * border.width;
     }
+
+    pub fn new_layout(&mut self) {
+
+    }
     
     fn render_border(&self, canvas: &Canvas) {
         let border_rect = Rect::from_point_and_size(

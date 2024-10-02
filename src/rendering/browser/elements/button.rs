@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
-use super::{element::{Element, ElementSize, EventType}, styles::Styles};
+use super::{element::{Element, ElementSize, EventType}, styles::{Size, Styles}};
 
 
 pub struct Button {
@@ -13,25 +13,26 @@ pub struct Button {
 impl Button {
     pub fn new(styles: Option<Styles>, on_click: Box<dyn FnMut()>) -> Self {
         let styles = styles.unwrap_or_default();
-        let size = if let Some(size) = &styles.size {
-            size.clone()
-        } else {
-            ElementSize { width: 0.0, height: 0.0 }
-        };
 
         Self { 
             position: Point::new(0.0, 0.0), 
-            size,
+            size: Button::get_size_from_styles(styles.clone()),
             styles,
             on_click 
         }
     }
 
+    fn get_size_from_styles(styles: Styles) -> ElementSize {
+        if let Some(size) = styles.size {
+            ElementSize { width: size.width.unwrap_or(0.0), height: size.height.unwrap_or(0.0) }
+        } else {
+            ElementSize { width: 0.0, height: 0.0 }
+        }
+    }
+
     pub fn set_styles(mut self, styles: Styles) -> Self {
         self.styles = styles;
-        if let Some(size) = &self.styles.size {
-            self.size = size.clone();
-        }
+        self.size = Button::get_size_from_styles(styles.clone());
         self
     }
     
@@ -72,8 +73,12 @@ impl Button {
     }
 
     pub fn rect(&self) -> Rect {
-        let width = if let Some(size) = &self.styles.size { size.width } else { 0.0 };
-        let height = if let Some(size) = &self.styles.size { size.height } else { 0.0 };
+        let width = if let Some(size) = &self.styles.size { 
+            if let Some(width) = size.width { width } else { 0.0 }
+        } else { 0.0 };
+        let height = if let Some(size) = &self.styles.size { 
+            if let Some(height) = size.height { height } else { 0.0 }
+        } else { 0.0 };
         Rect::from_point_and_size(self.position, (width, height))
     }
 }

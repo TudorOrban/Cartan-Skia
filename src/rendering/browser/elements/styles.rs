@@ -1,10 +1,8 @@
 use skia_safe::Color;
 
-use super::element::ElementSize;
-
-
+#[derive(Clone, Copy)]
 pub struct Styles {
-    pub size: Option<ElementSize>,
+    pub size: Option<Size>,
     pub margin: Option<Margin>,
     pub padding: Option<Padding>,
     pub alignment: Option<RowItemsAlignment>,
@@ -16,7 +14,7 @@ pub struct Styles {
 impl Default for Styles {
     fn default() -> Self {
         Self {
-            size: Some(ElementSize::default()),
+            size: Some(Size::default()),
             margin: Some(Margin::default()),
             padding: Some(Padding::default()),
             alignment: Some(RowItemsAlignment::default()),
@@ -27,6 +25,34 @@ impl Default for Styles {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct Size {
+    pub width: Option<f32>,
+    pub height: Option<f32>,
+    pub mode: Option<SizeMode>,
+}
+
+impl Default for Size {
+    fn default() -> Self {
+        Self {
+            width: None,
+            height: None,
+            mode: Some(SizeMode::FitContent),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum SizeMode {
+    Exact,  // Use the specified width and height exactly.
+    FitContent,    // Fit content to the available space, maintaining the aspect ratio.
+    FillParent,   // Expand to fill the available space, respecting max constraints if provided.
+    FitParentWidth, // Expand to fill the available width, respecting max constraints if provided.
+    FitHeight, // Expand to fill the available height, respecting max constraints if provided.
+    Percent(f32), // Use a percentage of the available space.
+}
+
+#[derive(Clone, Copy)]
 pub struct Spacing {
     pub spacing_x: f32,
     pub spacing_y: f32,
@@ -41,7 +67,7 @@ impl Default for Spacing {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Margin {
     pub top: f32,
     pub right: f32,
@@ -60,7 +86,7 @@ impl Default for Margin {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Padding {
     pub top: f32,
     pub right: f32,
@@ -79,7 +105,7 @@ impl Default for Padding {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum RowItemsAlignment {
     Start,
     Center,
@@ -92,7 +118,7 @@ impl Default for RowItemsAlignment {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Border {
     pub width: f32,
     pub color: Color,
@@ -109,7 +135,7 @@ impl Default for Border {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct BorderRadius {
     pub top_left: f32,
     pub top_right: f32,
