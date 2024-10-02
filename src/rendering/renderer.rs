@@ -1,13 +1,12 @@
-use crate::{rendering::browser::{elements::element::EventType, ui_manager::UIManager}, window::WindowingSystem};
+use crate::rendering::browser::{elements::element::EventType, ui_manager::UIManager};
 use skia_safe::{
     gpu::{self, gl::FramebufferInfo, SurfaceOrigin},
     ColorType, Surface,
 };
-use glutin::config::GlConfig;
 use winit::window::Window;
 use skia_safe::gpu::DirectContext;
 
-use super::webpage_renderer::WebPageRenderer;
+use super::{browser::ui_body::get_ui_body, webpage_renderer::WebPageRenderer};
 
 pub struct Renderer {
     pub surface: Surface,
@@ -16,18 +15,19 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(window: &Window, gr_context: &mut DirectContext, fb_info: FramebufferInfo, num_samples: usize, stencil_size: usize) -> Self {
+    pub fn new(window: &Window, gr_context: &mut DirectContext, fb_info: FramebufferInfo, sample_count: usize, stencil_bits: usize) -> Self {
         let surface = Self::create_surface(
             window,
             fb_info,
             gr_context,
-            num_samples,
-            stencil_size,
+            sample_count,
+            stencil_bits,
         );
+        let ui_body = get_ui_body();
 
         Self { 
             surface,
-            ui_manager: UIManager::new(),
+            ui_manager: UIManager::new(ui_body),
             web_page_renderer: WebPageRenderer::new(),
         }
     }
@@ -46,12 +46,26 @@ impl Renderer {
         self.web_page_renderer.handle_event(cursor_position, event_type);
     }
     
-    pub fn create_surface(
+    fn create_surface(
         window: &Window,
         fb_info: FramebufferInfo,
         gr_context: &mut DirectContext,
-        num_samples: usize,
-        stencil_size: usize,
+        sample_count: usize,
+        stencil_bits: usize,
+    ) -> Surface {
+        Renderer::create_or_resize_surface(window, gr_context, fb_info, sample_count, stencil_bits)
+    }
+
+    pub fn resize_surface(&mut self, window: &Window, gr_context: &mut DirectContext, fb_info: FramebufferInfo, sample_count: usize, stencil_bits: usize) {
+        self.surface = Renderer::create_or_resize_surface(window, gr_context, fb_info, sample_count, stencil_bits);
+    }
+
+    fn create_or_resize_surface(
+        window: &Window,
+        gr_context: &mut DirectContext,
+        fb_info: FramebufferInfo,
+        sample_count: usize,
+        stencil_bits: usize,
     ) -> Surface {
         let size = window.inner_size();
         let size = (
@@ -60,8 +74,8 @@ impl Renderer {
         );
         let backend_render_target = gpu::backend_render_targets::make_gl(
             size, 
-            num_samples, 
-            stencil_size, 
+            sample_count, 
+            stencil_bits, 
             fb_info
         );
 
@@ -72,30 +86,6 @@ impl Renderer {
             ColorType::RGBA8888,
             None,
             None,
-        ).expect("Could not create skia surface")
-    }
-    
-    
-    pub fn resize_surface(&mut self, window: &Window, gr_context: &mut DirectContext, fb_info: FramebufferInfo, num_samples: usize, stencil_size: usize) {
-        let size = window.inner_size();
-        let size = (
-            size.width.try_into().expect("Could not convert width"),
-            size.height.try_into().expect("Could not convert height"),
-        );
-        let backend_render_target = gpu::backend_render_targets::make_gl(
-            size, 
-            num_samples, 
-            stencil_size, 
-            fb_info
-        );
-
-        self.surface = gpu::surfaces::wrap_backend_render_target(
-            gr_context,
-            &backend_render_target,
-            SurfaceOrigin::BottomLeft,
-            ColorType::RGBA8888,
-            None,
-            None,
-        ).expect("Failed to recreate surface");
+        ).expect("Failed to create or resize Skia surface")
     }
 }

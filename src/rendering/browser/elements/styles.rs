@@ -5,6 +5,7 @@ use super::element::ElementSize;
 
 pub struct Styles {
     pub spacing: Option<Spacing>,
+    pub alignment: Option<RowItemsAlignment>,
     pub size: Option<ElementSize>,
     pub color: Option<Color>,
 }
@@ -16,6 +17,7 @@ impl Default for Styles {
                 spacing_x: 0.0,
                 spacing_y: 0.0,
             }),
+            alignment: Some(RowItemsAlignment::Start),
             size: Some(ElementSize {
                 width: 0.0,
                 height: 0.0,
@@ -28,4 +30,10 @@ impl Default for Styles {
 pub struct Spacing {
     pub spacing_x: f32,
     pub spacing_y: f32,
+}
+
+pub enum RowItemsAlignment {
+    Start,
+    Center,
+    End,
 }

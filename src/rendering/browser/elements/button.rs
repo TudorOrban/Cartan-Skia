@@ -11,7 +11,8 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(styles: Styles, on_click: Box<dyn FnMut()>) -> Self {
+    pub fn new(styles: Option<Styles>, on_click: Box<dyn FnMut()>) -> Self {
+        let styles = styles.unwrap_or_default();
         let size = if let Some(size) = &styles.size {
             size.clone()
         } else {
@@ -24,6 +25,14 @@ impl Button {
             styles,
             on_click 
         }
+    }
+
+    pub fn set_styles(mut self, styles: Styles) -> Self {
+        self.styles = styles;
+        if let Some(size) = &self.styles.size {
+            self.size = size.clone();
+        }
+        self
     }
 
     pub fn rect(&self) -> Rect {
