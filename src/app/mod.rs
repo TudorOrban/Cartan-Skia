@@ -1,13 +1,15 @@
 // src/app/mod.rs
 
+use crate::rendering::browser::elements::button::Button;
 use crate::rendering::{create_surface, Renderer};
 use crate::window::WindowingSystem;
 use glutin::surface::GlSurface;
 use glutin::config::GlConfig;
 use skia_safe::gpu::gl::FramebufferInfo;
+use skia_safe::{Color, Point, Rect};
 use std::num::NonZeroU32;
 use winit::application::ApplicationHandler;
-use winit::event::{KeyEvent, Modifiers, WindowEvent};
+use winit::event::{DeviceId, ElementState, KeyEvent, Modifiers, MouseButton, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
 
 pub struct Application {
@@ -15,7 +17,9 @@ pub struct Application {
     pub fb_info: FramebufferInfo,
     pub renderer: Renderer,
     pub modifiers: Modifiers,
+    pub button: Button,
     pub frame: usize,
+    pub mouse_position: Option<Point>,
 }
 
 impl Application {
@@ -30,12 +34,20 @@ impl Application {
 
         let renderer = Renderer::new(surface);
 
+        let button = Button::new(
+            Rect::from_xywh(50.0, 50.0, 200.0, 100.0),
+            Color::BLUE,
+            Box::new(|| println!("Button clicked")),
+        );
+        
         Self {
             windowing,
             fb_info,
             renderer,
             modifiers: Modifiers::default(),
+            button,
             frame: 0,
+            mouse_position: None,
         }
     }
 }
@@ -79,6 +91,15 @@ impl ApplicationHandler for Application {
             WindowEvent::ModifiersChanged(new_modifiers) => {
                 self.modifiers = new_modifiers;
             }
+            WindowEvent::MouseInput { state, button, .. } => {
+                if let (ElementState::Pressed, MouseButton::Left) = (state, button) {
+                    if let Some(mouse_position) = self.mouse_position {
+                        // Assuming we have a button in renderer that we can call `handle_click` on
+                        self.button.handle_click(mouse_position.x, mouse_position.y);
+                        self.windowing.window.request_redraw();
+                    }
+                }
+            }
             WindowEvent::KeyboardInput {
                 event: KeyEvent { logical_key, .. },
                 ..
@@ -87,6 +108,9 @@ impl ApplicationHandler for Application {
                     event_loop.exit();
                 }
                 self.windowing.window.request_redraw();
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+                self.mouse_position = Some(Point::new(position.x as f32, position.y as f32));
             }
             WindowEvent::RedrawRequested => {
                 // Render and flush the Skia context
@@ -98,9 +122,6 @@ impl ApplicationHandler for Application {
                     .gl_surface
                     .swap_buffers(&self.windowing.gl_context)
                     .expect("Failed to swap buffers");
-
-                // Request another redraw to keep the application running smoothly
-                self.windowing.window.request_redraw();
             }
             _ => (),
         }

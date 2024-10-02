@@ -7,6 +7,8 @@ use skia_safe::{
 use winit::window::Window;
 use skia_safe::gpu::DirectContext;
 
+pub mod browser;
+
 pub struct Renderer {
     pub surface: Surface,
 }
