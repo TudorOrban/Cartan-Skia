@@ -16,21 +16,33 @@ impl Row {
         }
     }
 
-    pub fn set_styles(&mut self, styles: Styles) {
+    pub fn set_styles(mut self, styles: Styles) -> Self {
         self.styles = styles;
+        self.layout();
+        self
     }
 
     pub fn add_child(mut self, child: Box<dyn Element>) -> Self {
         self.children.push(child);
+        self.layout();
+        self
+    }
+
+    pub fn add_children(mut self, children: Vec<Box<dyn Element>>) -> Self {
+        self.children.extend(children);
+        self.layout();
         self
     }
 
     pub fn layout(&mut self) {
         let mut cursor_x = 0.0;
+        let mut cursor_y = 0.0;
+
         for child in self.children.iter_mut() {
             let child_size = child.get_size();
-            child.set_position(Point::new(cursor_x, 0.0));
-            cursor_x += child_size.width + self.styles.spacing;
+            child.set_position(Point::new(cursor_x, cursor_y));
+            cursor_x += child_size.width + self.styles.spacing.spacing_x;
+            cursor_y += self.styles.spacing.spacing_y;
         }
     }
 }
@@ -58,7 +70,7 @@ impl Element for Row {
         let mut cursor_x = position.x;
         for child in &mut self.children {
             child.set_position(Point::new(cursor_x, position.y));
-            cursor_x += child.get_size().width + self.styles.spacing;
+            cursor_x += child.get_size().width + self.styles.spacing.spacing_x;
         }
     }
 
@@ -66,7 +78,7 @@ impl Element for Row {
         // Calculate the total size of the row based on children and spacing
         let total_width = self.children.iter()
             .map(|child| child.get_size().width)
-            .sum::<f32>() + self.styles.spacing * (self.children.len() as f32 - 1.0);
+            .sum::<f32>() + self.styles.spacing.spacing_x * (self.children.len() as f32 - 1.0);
         let max_height = self.children.iter()
             .map(|child| child.get_size().height)
             .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
