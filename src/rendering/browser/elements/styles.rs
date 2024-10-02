@@ -17,7 +17,7 @@ impl Default for Styles {
                 spacing_x: 0.0,
                 spacing_y: 0.0,
             }),
-            alignment: Some(RowItemsAlignment::Start),
+            alignment: Some(RowItemsAlignment::default()),
             size: Some(ElementSize {
                 width: 0.0,
                 height: 0.0,
@@ -32,8 +32,15 @@ pub struct Spacing {
     pub spacing_y: f32,
 }
 
+#[derive(Clone)]
 pub enum RowItemsAlignment {
     Start,
     Center,
     End,
+}
+
+impl Default for RowItemsAlignment {
+    fn default() -> Self {
+        Self::Start
+    }
 }

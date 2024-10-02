@@ -1,5 +1,4 @@
-use super::elements::{button::Button, element::{Element, ElementSize, EventType}, row::Row, styles::{Spacing, Styles}};
-
+use super::elements::element::{Element, EventType};
 
 pub struct UIManager {
     root_element: Box<dyn Element>,
@@ -14,6 +13,7 @@ impl UIManager {
         self.root_element.render(canvas);
     }
 
+    #[allow(dead_code)]
     pub fn update(&mut self) {
         self.root_element.update();
     }
@@ -22,4 +22,3 @@ impl UIManager {
         self.root_element.handle_event(cursor_position, event_type);
     }
 }
-

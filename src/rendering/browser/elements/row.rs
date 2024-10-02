@@ -1,10 +1,11 @@
 use skia_safe::Point;
 
-use super::{element::{Element, ElementSize, EventType}, styles::Styles};
+use super::{element::{Element, ElementSize, EventType}, styles::{RowItemsAlignment, Styles}};
 
 
 pub struct Row {
     children: Vec<Box<dyn Element>>,
+    position: Point,
     styles: Styles
 }
 
@@ -12,6 +13,7 @@ impl Row {
     pub fn new() -> Self {
         Self {
             children: vec![],
+            position: Point::new(0.0, 0.0),
             styles: Styles::default()
         }
     }
@@ -22,6 +24,7 @@ impl Row {
         self
     }
 
+    #[allow(dead_code)]
     pub fn add_child(mut self, child: Box<dyn Element>) -> Self {
         self.children.push(child);
         self.layout();
@@ -33,28 +36,33 @@ impl Row {
         self.layout();
         self
     }
-
+    
     pub fn layout(&mut self) {
-        let mut cursor_x = 0.0;
-        let mut cursor_y = 0.0;
+        let max_height = self.children.iter()
+            .map(|child| child.get_size().height)
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or(0.0);
+
         let spacing_x = self.get_spacing_x();
-        let spacing_y = self.get_spacing_y();
+        let mut cursor_x = self.position.x;
+        let base_y = self.position.y;
 
         for child in self.children.iter_mut() {
             let child_size = child.get_size();
-            child.set_position(Point::new(cursor_x, cursor_y));
+            let child_y_position = match self.styles.alignment.clone().unwrap_or_default() {
+                RowItemsAlignment::Start => base_y,
+                RowItemsAlignment::Center => base_y + (max_height - child_size.height) / 2.0,
+                RowItemsAlignment::End => base_y + (max_height - child_size.height),
+            };
+
+            child.set_position(Point::new(cursor_x, child_y_position));
 
             cursor_x += child_size.width + spacing_x;
-            cursor_y += spacing_y;
         }
     }
     
     fn get_spacing_x(&self) -> f32 {
         if let Some(spacing) = &self.styles.spacing { spacing.spacing_x } else { 0.0 }
-    }
-
-    fn get_spacing_y(&self) -> f32 {
-        if let Some(spacing) = &self.styles.spacing { spacing.spacing_y } else { 0.0 }
     }
 }
 
@@ -78,13 +86,8 @@ impl Element for Row {
     }
 
     fn set_position(&mut self, position: Point) {
-        let mut cursor_x = position.x;
-        let spacing_x = self.get_spacing_x();
-
-        for child in &mut self.children {
-            child.set_position(Point::new(cursor_x, position.y));
-            cursor_x += child.get_size().width + spacing_x;
-        }
+        self.position = position;
+        self.layout();
     }
 
     fn get_size(&self) -> ElementSize {
