@@ -10,6 +10,7 @@ pub struct Styles {
     pub alignment: Option<RowItemsAlignment>,
     pub spacing: Option<Spacing>,
     pub color: Option<Color>,
+    pub border: Option<Border>,
 }
 
 impl Default for Styles {
@@ -21,6 +22,7 @@ impl Default for Styles {
             alignment: Some(RowItemsAlignment::default()),
             spacing: Some(Spacing::default()),
             color: Some(Color::WHITE),
+            border: Some(Border::default()),
         }
     }
 }
@@ -39,6 +41,7 @@ impl Default for Spacing {
     }
 }
 
+#[derive(Clone)]
 pub struct Margin {
     pub top: f32,
     pub right: f32,
@@ -57,6 +60,7 @@ impl Default for Margin {
     }
 }
 
+#[derive(Clone)]
 pub struct Padding {
     pub top: f32,
     pub right: f32,
@@ -85,5 +89,41 @@ pub enum RowItemsAlignment {
 impl Default for RowItemsAlignment {
     fn default() -> Self {
         Self::Start
+    }
+}
+
+#[derive(Clone)]
+pub struct Border {
+    pub width: f32,
+    pub color: Color,
+    pub radius: BorderRadius,
+}
+
+impl Default for Border {
+    fn default() -> Self {
+        Self {
+            width: 0.0,
+            color: Color::TRANSPARENT,
+            radius: BorderRadius::default(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct BorderRadius {
+    pub top_left: f32,
+    pub top_right: f32,
+    pub bottom_right: f32,
+    pub bottom_left: f32,
+}
+
+impl Default for BorderRadius {
+    fn default() -> Self {
+        Self {
+            top_left: 0.0,
+            top_right: 0.0,
+            bottom_right: 0.0,
+            bottom_left: 0.0,
+        }
     }
 }
