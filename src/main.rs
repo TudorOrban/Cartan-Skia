@@ -6,7 +6,7 @@ use gl_rs as gl;
 use glutin::display::GetGlDisplay;
 use glutin::display::GlDisplay;
 
-use app::Application;
+use app::application::Application;
 use window::WindowingSystem;
 use winit::event_loop::EventLoop;
 use std::ffi::CString;
