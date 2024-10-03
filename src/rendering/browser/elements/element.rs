@@ -1,4 +1,5 @@
 use skia_safe::{Canvas, Point};
+use std::ops::Sub;
 
 use super::styles::{Directions, Styles};
 
@@ -29,6 +30,17 @@ pub enum EventType {
 pub struct ElementSize {
     pub width: f32,
     pub height: f32,
+}
+
+impl Sub for ElementSize {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            width: self.width - other.width,
+            height: self.height - other.height,
+        }
+    }
 }
 
 impl Default for ElementSize {

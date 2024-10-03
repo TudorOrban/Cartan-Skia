@@ -19,7 +19,7 @@ impl Default for Styles {
             padding: Some(Padding::default()),
             alignment: Some(RowItemsAlignment::default()),
             spacing: Some(Spacing::default()),
-            color: Some(Color::WHITE),
+            color: Some(Color::TRANSPARENT),
             border: Some(Border::default()),
         }
     }

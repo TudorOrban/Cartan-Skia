@@ -1,8 +1,9 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 use crate::rendering::browser::internal::element_id_generator::IDGenerator;
 
 pub struct RowSpaceAllocationPlan {
+    #[allow(dead_code)]
     pub element_id: String,
     pub child_space_allocation_plans: Vec<ChildSpaceAllocationPlan>,
 }
@@ -58,10 +59,13 @@ impl ChildSpaceAllocation {
 
 #[derive(Clone)]
 pub struct ChildSpaceRequest {
+    #[allow(dead_code)]
     pub id: String,
+    #[allow(dead_code)]
     pub requester_element_id: String,
     pub request_type: SpaceRequestType,
     pub requested_space: Space,
+    #[allow(dead_code)]
     pub special_priority: bool,
 }
 
@@ -105,6 +109,21 @@ impl Default for Space {
     }
 }
 
+pub trait VerticalHorizontal {
+    fn vertical(&self) -> f32;
+    fn horizontal(&self) -> f32;
+}
+
+impl VerticalHorizontal for Space {
+    fn vertical(&self) -> f32 {
+        self.top + self.bottom
+    }
+
+    fn horizontal(&self) -> f32 {
+        self.left + self.right
+    }
+}
+
 impl Add for Space {
     type Output = Self;
 
@@ -114,6 +133,19 @@ impl Add for Space {
             right: self.right + other.right,
             bottom: self.bottom + other.bottom,
             left: self.left + other.left,
+        }
+    }
+}
+
+impl Sub for Space {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            top: self.top - other.top,
+            right: self.right - other.right,
+            bottom: self.bottom - other.bottom,
+            left: self.left - other.left,
         }
     }
 }
