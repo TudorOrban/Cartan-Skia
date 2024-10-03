@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Point};
 
-use super::styles::Styles;
+use super::styles::{Directions, Styles};
 
 
 pub trait Element {
@@ -16,6 +16,7 @@ pub trait Element {
     fn get_id(&self) -> String;
     fn get_size(&self) -> ElementSize;
     fn get_styles(&self) -> Styles;
+    fn is_variable_size(&self) -> Directions;
 }
 
 pub enum EventType {

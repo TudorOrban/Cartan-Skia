@@ -2,7 +2,7 @@ use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
 use crate::rendering::browser::internal::element_id_generator::IDGenerator;
 
-use super::{element::{Element, ElementSize, EventType}, styles::Styles};
+use super::{element::{Element, ElementSize, EventType}, styles::{Directions, Styles}};
 
 
 pub struct Button {
@@ -126,12 +126,23 @@ impl Element for Button {
     fn get_id(&self) -> String {
         self._id.clone()
     }
-    
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }
 
     fn get_styles(&self) -> Styles {
         self.styles.clone()
+    }
+    
+    fn is_variable_size(&self) -> Directions {
+        let mut directions = Directions { horizontal: true, vertical: true };
+
+        if let Some(size) = &self.styles.size {
+            if size.width.is_some() { directions.horizontal = false; }
+            if size.height.is_some() { directions.vertical = false; }
+        }
+
+        directions
     }
 }

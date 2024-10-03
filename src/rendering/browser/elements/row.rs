@@ -110,7 +110,7 @@ impl Element for Row {
             child.update();
         }
     }
-
+    
     fn handle_event(&mut self, cursor_position: Point, event_type: &EventType) {
         for child in &mut self.children {
             child.handle_event(cursor_position, event_type);
@@ -143,35 +143,14 @@ impl Element for Row {
         self.styles.clone()
     }
 
+    fn is_variable_size(&self) -> Directions {
+        let mut directions = Directions { horizontal: true, vertical: true };
+
+        if let Some(size) = &self.styles.size {
+            if size.width.is_some() { directions.horizontal = false; }
+            if size.height.is_some() { directions.vertical = false; }
+        }
+
+        directions
+    }
 }
-
-// Last sadisa
-
-// let max_height = self.children.iter()
-//     .map(|child| child.get_size().height)
-//     .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-//     .unwrap_or(0.0);
-
-// let margin = self.styles.margin.clone().unwrap_or_default();
-// let padding = self.styles.padding.clone().unwrap_or_default();
-// let border = self.styles.border.clone().unwrap_or_default();
-
-// let spacing_x = self.get_spacing_x();
-// let mut cursor_x = self.position.x + margin.left + padding.left + border.width;
-// let base_y = self.position.y + margin.top + padding.top + border.width;
-
-// for child in self.children.iter_mut() {
-//     let child_size = child.get_size();
-
-//     let child_y_position = match self.styles.alignment.clone().unwrap_or_default() {
-//         RowItemsAlignment::Start => base_y,
-//         RowItemsAlignment::Center => base_y + (max_height - child_size.height) / 2.0,
-//         RowItemsAlignment::End => base_y + (max_height - child_size.height),
-//     };
-
-//     child.set_position(Point::new(cursor_x, child_y_position));
-//     cursor_x += child_size.width + spacing_x;
-// }
-
-// self.size.width = cursor_x - self.position.x + padding.right + margin.right + border.width;
-// self.size.height = max_height + padding.top + padding.bottom + margin.top + margin.bottom + 2.0 * border.width;

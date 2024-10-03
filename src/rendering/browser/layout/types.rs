@@ -18,11 +18,11 @@ impl SpaceAllocationRequest {
 }
 
 pub enum SpaceRequest {
-    Margin(Space),
-    Border(Space),
-    Padding(Space),
-    Spacing(Space),
     ChildSize(Space),
+    Spacing(Space),
+    Padding(Space),
+    Border(Space),
+    Margin(Space),
 }
 
 #[derive(Clone, Copy)]
