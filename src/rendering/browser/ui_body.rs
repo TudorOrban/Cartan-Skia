@@ -1,5 +1,5 @@
 
-use super::elements::{button::Button, element::Element, row::Row, styles::{Border, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
+use super::elements::{button::Button, element::{Element, ElementSize}, row::Row, styles::{Border, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
 
 
 pub fn get_ui_body() -> Box<dyn Element> {
@@ -13,7 +13,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 })
         ),
         Box::new(
-            Button::new(None, Box::new(|| println!("Button 3 clicked")))
+            Button::new(None, Box::new(|| println!("Button 2 clicked")))
                 .set_styles(Styles {
                     size: Some(Size { width: Some(75.0), height: Some(75.0), mode: Some(SizeMode::FitContent) }),
                     color: Some(skia_safe::Color::from_argb(255, 0, 255, 0)),
@@ -32,8 +32,8 @@ pub fn get_ui_body() -> Box<dyn Element> {
     let first_row = Box::new(Row::new()
         .add_children(first_row_children)
         .set_styles(Styles {
-            // spacing: Some(Spacing { spacing_x: 10.0, spacing_y: 0.0 }),
-            // alignment: Some(RowItemsAlignment::Start),
+            spacing: Some(Spacing { spacing_x: 5.0, spacing_y: 0.0 }),
+            alignment: Some(RowItemsAlignment::Start),
             // padding: Some(Padding {
             //     top: 20.0,
             //     right: 10.0,
@@ -47,6 +47,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
             }),
             ..Default::default()
         })
+        .request_layout(None)
     );
 
     let second_row_children: Vec<Box<dyn Element>> = vec![
@@ -71,8 +72,8 @@ pub fn get_ui_body() -> Box<dyn Element> {
     let second_row = Box::new(Row::new()
         .add_children(second_row_children)
         .set_styles(Styles {
-            // spacing: Some(Spacing { spacing_x: 10.0, spacing_y: 0.0 }),
-            // alignment: Some(RowItemsAlignment::Center),
+            spacing: Some(Spacing { spacing_x: 20.0, spacing_y: 0.0 }),
+            alignment: Some(RowItemsAlignment::Center),
             // padding: Some(Padding {
             //     top: 10.0,
             //     right: 10.0,
@@ -86,14 +87,15 @@ pub fn get_ui_body() -> Box<dyn Element> {
             }),
             ..Default::default()
         })
+        .request_layout(None)
     );
 
     let total_row: Box<dyn Element> = Box::new(Row::new()
         .add_child(first_row)
         .add_child(second_row)
         .set_styles(Styles {
-            // spacing: Some(Spacing { spacing_x: 0.0, spacing_y: 10.0 }),
-            // alignment: Some(RowItemsAlignment::End),
+            spacing: Some(Spacing { spacing_x: 10.0, spacing_y: 0.0 }),
+            alignment: Some(RowItemsAlignment::End),
             margin: Some(Margin {
                 top: 100.0,
                 right: 20.0,
@@ -114,6 +116,8 @@ pub fn get_ui_body() -> Box<dyn Element> {
             color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
             ..Default::default()
         })
+        .request_layout(None)
+        .request_layout(Some(ElementSize { width: 400.0, height: 300.0 }))
     );
     
     total_row

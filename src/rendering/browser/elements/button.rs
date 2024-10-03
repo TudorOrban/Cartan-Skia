@@ -110,6 +110,15 @@ impl Element for Button {
         self.size = size;
     }
 
+    fn layout(&mut self, available_space: Option<ElementSize>) {
+        if let Some(available_space) = available_space {
+            self.size = ElementSize { 
+                width: if available_space.width < self.size.width { available_space.width } else { self.size.width },
+                height: if available_space.height < self.size.height { available_space.height } else { self.size.height },
+            }
+        }
+    }
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }

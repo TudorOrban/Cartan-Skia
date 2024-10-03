@@ -11,6 +11,7 @@ pub trait Element {
 
     fn set_position(&mut self, position: Point);
     fn set_size(&mut self, size: ElementSize);
+    fn layout(&mut self, available_space: Option<ElementSize>);
 
     fn get_size(&self) -> ElementSize;
     fn get_styles(&self) -> Styles;
