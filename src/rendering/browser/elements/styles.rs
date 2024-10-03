@@ -45,7 +45,7 @@ impl Default for Size {
 #[derive(Clone, Copy)]
 pub enum SizeMode {
     FitContent,    // Fit content to the available space.
-    Exact,  // Use the specified width and height exactly.
+    Exact(Directions),  // Use the specified width and height exactly.
     FillParent,   // Expand to fill the available space, respecting max constraints if provided.
     FitParentWidth, // Expand to fill the available width, respecting max constraints if provided.
     FitParentHeight, // Expand to fill the available height, respecting max constraints if provided.
@@ -156,6 +156,21 @@ impl Default for BorderRadius {
             top_right: 0.0,
             bottom_right: 0.0,
             bottom_left: 0.0,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct Directions {
+    pub horizontal: bool,
+    pub vertical: bool,
+}
+
+impl Default for Directions {
+    fn default() -> Self {
+        Self {
+            horizontal: true,
+            vertical: true,
         }
     }
 }

@@ -1,12 +1,14 @@
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use super::{element::{Element, ElementSize, EventType}, styles::{Margin, RowItemsAlignment, SizeMode, Spacing, Styles}};
+use super::{element::{Element, ElementSize, EventType}, styles::{Border, Directions, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
 
 
 pub struct Row {
     children: Vec<Box<dyn Element>>,
     position: Point,
     size: ElementSize,
+    natural_size: ElementSize,
+    requested_size: ElementSize,
     styles: Styles
 }
 
@@ -16,6 +18,8 @@ impl Row {
             children: vec![],
             position: Point::new(0.0, 0.0),
             size: ElementSize::default(),
+            natural_size: ElementSize::default(),
+            requested_size: ElementSize::default(),
             styles: Styles::default()
         }
     }
@@ -95,8 +99,8 @@ impl Row {
 
     }
     
-    fn render_border(&self, canvas: &Canvas) {
-        let border_rect = Rect::from_point_and_size(
+    fn render_background_and_border(&self, canvas: &Canvas) {
+        let row_rect = Rect::from_point_and_size(
             Point::new(self.position.x + self.styles.margin.as_ref().unwrap_or(&&Margin::default()).left,
                        self.position.y + self.styles.margin.as_ref().unwrap_or(&Margin::default()).top),
             (self.size.width - self.styles.margin.as_ref().unwrap_or(&Margin::default()).left - self.styles.margin.as_ref().unwrap_or(&Margin::default()).right,
@@ -104,12 +108,16 @@ impl Row {
         );
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
+        paint.set_style(PaintStyle::Fill);
+        paint.set_color(self.styles.color.unwrap_or(Color::TRANSPARENT));
+        canvas.draw_rect(row_rect, &paint);
+
+        paint.set_anti_alias(true);
         paint.set_style(PaintStyle::Stroke);
         paint.set_stroke_width(self.styles.border.as_ref().map_or(0.0, |b| b.width));
         paint.set_color(self.styles.border.as_ref().map_or(Color::TRANSPARENT, |b| b.color));
-        canvas.draw_rect(border_rect, &paint);
+        canvas.draw_rect(row_rect, &paint);
     }
-    
 
     pub fn get_spacing_x(&self) -> f32 {
         if let Some(spacing) = &self.styles.spacing { spacing.spacing_x } else { 0.0 }
@@ -118,7 +126,7 @@ impl Row {
 
 impl Element for Row {
     fn render(&self, canvas: &Canvas) {
-        self.render_border(canvas);
+        self.render_background_and_border(canvas);
     
         for child in &self.children {
             child.render(canvas);
@@ -163,71 +171,89 @@ impl Element for Row {
 
 #[allow(dead_code)]
 pub fn layout_first_pass(row: &mut Row) {
-    let row_size = determine_row_size(row);
+    determine_row_sizes(row);
+
+    // Layout children...
 }
 
-fn determine_row_size(row: &mut Row) -> ElementSize {
-    let mut row_size = ElementSize { width: 0.0, height: 0.0 };
-
+fn determine_row_sizes(row: &mut Row) {
     let total_children_width = row.children.iter().map(|child| child.get_size().width).sum::<f32>();
     let max_children_height = row.children.iter().map(|child| child.get_size().height)
         .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)).unwrap_or(0.0);
 
-    match row.styles.size.unwrap_or_default().mode.unwrap_or_default() {
-        SizeMode::FitContent => {
-            row_size = determine_row_size_fit_content(row, total_children_width, max_children_height);
-        },
-        SizeMode::Exact => {
-            let size = row.styles.size.unwrap();
-            row_size = ElementSize { width: size.width.unwrap_or(0.0), height: size.height.unwrap_or(0.0) };
-        },
-        SizeMode::FillParent => {
-            
-        },
-        _ => {
-            println!("Unsupported size mode");
-            row_size = determine_row_size_fit_content(row, total_children_width, max_children_height);
-        }
-    }
-
-    row_size
-}
-
-fn determine_row_size_fit_content(row: &mut Row, total_children_width: f32, max_children_height: f32) -> ElementSize {
-    let total_row_width = determine_base_row_width_fit_content(row, total_children_width);
-    let total_row_height = determine_base_row_height_fit_content(row, max_children_height);
-
-    let width = determine_row_width_fit_content(row, total_row_width);
-    let height = determine_row_height_fit_content(row, total_row_height);
-
-    ElementSize { width, height }
-}
-
-fn determine_base_row_width_fit_content(row: &mut Row, total_children_width: f32) -> f32 {
     let margin = row.styles.margin.clone().unwrap_or_default();
     let padding = row.styles.padding.clone().unwrap_or_default();
     let border = row.styles.border.clone().unwrap_or_default();
 
+    let natural_row_width = determine_natural_row_width(row, total_children_width, &margin, &padding, &border);
+    let natural_row_height = determine_natural_row_height(max_children_height, &margin, &padding, &border);
+
+    let requested_row_width = determine_requested_row_width(row.styles.size.clone().unwrap_or_default(), natural_row_width);
+    let requested_row_height = determine_requested_row_height(row.styles.size.clone().unwrap_or_default(), natural_row_height);
+
+    row.size = ElementSize { width: requested_row_width, height: requested_row_height };
+    row.natural_size = ElementSize { width: natural_row_width, height: natural_row_height };
+    row.requested_size = ElementSize { width: requested_row_width, height: requested_row_height };
+}
+
+// Natural
+fn determine_natural_row_width(
+    row: &mut Row, 
+    total_children_width: f32,
+    margin: &Margin,
+    padding: &Padding,
+    border: &Border
+) -> f32 {
     let base_width = total_children_width + row.get_spacing_x() * (row.children.len() as f32 - 1.0)
         + margin.left + margin.right + padding.left + padding.right + 2.0 * border.width;
 
     base_width
 }
 
-fn determine_base_row_height_fit_content(row: &mut Row, max_children_height: f32) -> f32 {
-    let margin = row.styles.margin.clone().unwrap_or_default();
-    let padding = row.styles.padding.clone().unwrap_or_default();
-    let border = row.styles.border.clone().unwrap_or_default();
-
+fn determine_natural_row_height(
+    max_children_height: f32,
+    margin: &Margin,
+    padding: &Padding,
+    border: &Border
+) -> f32 {
     let base_height = max_children_height + margin.top + margin.bottom + padding.top + padding.bottom + 2.0 * border.width;
 
     base_height
 }
 
-fn determine_row_width_fit_content(row: &mut Row, natural_width: f32) -> f32 {
-    row.styles.size.map_or(natural_width, |size| size.width.unwrap_or(natural_width))
+// Requested
+fn determine_requested_row_width(size: Size, natural_row_width: f32) -> f32 {
+    let mut width = natural_row_width;
+    let directions = match size.mode {
+        Some(SizeMode::Exact(dirs)) => dirs,
+        _ => Directions { horizontal: false, vertical: false },
+    };
+
+    if directions.horizontal {
+        if size.width.is_some() {
+            width = size.width.unwrap_or(natural_row_width);
+        } else {
+            width = natural_row_width;
+        }
+    }
+
+    width
 }
 
-fn determine_row_height_fit_content(row: &mut Row, natural_height: f32) -> f32 {
-    row.styles.size.map_or(natural_height, |size| size.height.unwrap_or(natural_height))
+fn determine_requested_row_height(size: Size, natural_row_height: f32) -> f32 {
+    let mut height = natural_row_height;
+    let directions = match size.mode {
+        Some(SizeMode::Exact(dirs)) => dirs,
+        _ => Directions { horizontal: false, vertical: false },
+    };
+
+    if directions.vertical {
+        if size.height.is_some() {
+            height = size.height.unwrap_or(natural_row_height);
+        } else {
+            height = natural_row_height;
+        }
+    }
+
+    height
 }

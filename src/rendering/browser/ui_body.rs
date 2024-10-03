@@ -111,6 +111,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
+            color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
             ..Default::default()
         })
     );
