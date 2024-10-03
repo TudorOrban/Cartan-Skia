@@ -2,7 +2,7 @@ use std::alloc::Layout;
 
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{layout_manager::LayoutManager, space_allocator::SpaceAllocator}};
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{layout_manager::LayoutManager, space_allocator::SpaceAllocator, types::RowSpaceAllocationPlan}};
 
 use super::{element::{Element, ElementSize, EventType}, styles::{Border, Directions, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
 
@@ -15,19 +15,22 @@ pub struct Row {
     pub natural_size: ElementSize,
     pub requested_size: ElementSize,
     pub alllocated_size: Option<ElementSize>,
+    pub row_allocation_plan: RowSpaceAllocationPlan,
     pub styles: Styles,
 }
 
 impl Row {
     pub fn new() -> Self {
+        let id = IDGenerator::get();
         Self {
-            _id: IDGenerator::get(),
+            _id: id.clone(),
             children: vec![],
             position: Point::new(0.0, 0.0),
             size: ElementSize::default(),
             natural_size: ElementSize::default(),
             requested_size: ElementSize::default(),
             alllocated_size: None,
+            row_allocation_plan: RowSpaceAllocationPlan::new(id),
             styles: Styles::default(),
         }
     }

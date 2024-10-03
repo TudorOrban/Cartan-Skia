@@ -1,15 +1,55 @@
 use crate::rendering::browser::internal::element_id_generator::IDGenerator;
 
-
-pub struct SpaceAllocationPlan {
+pub struct RowSpaceAllocationPlan {
     pub element_id: String,
-    
+    pub child_space_allocation_plans: Vec<ChildSpaceAllocationPlan>,
 }
 
+impl RowSpaceAllocationPlan {
+    pub fn new(element_id: String) -> Self {
+        Self {
+            element_id,
+            child_space_allocation_plans: vec![],
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ChildSpaceAllocationPlan {
+    pub element_id: String,
+    pub child_allocations: Vec<ChildSpaceAllocation>,
+}
+
+impl ChildSpaceAllocationPlan {
+    pub fn new(element_id: String) -> Self {
+        Self {
+            element_id,
+            child_allocations: vec![],
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct ChildSpaceAllocation {
     pub request: ChildSpaceRequest,
     pub planned_allocation_space: Space,
+    pub deficit: Space,
+    pub child_position: Position,
+    pub has_planned: bool,
+    pub remaining_width: f32,
+}
 
+impl ChildSpaceAllocation {
+    pub fn new(request: ChildSpaceRequest) -> Self {
+        Self {
+            request,
+            planned_allocation_space: Space::default(),
+            deficit: Space::default(),
+            child_position: Position::default(),
+            has_planned: false,
+            remaining_width: 0.0,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -18,6 +58,7 @@ pub struct ChildSpaceRequest {
     pub requester_element_id: String,
     pub request_type: SpaceRequestType,
     pub requested_space: Space,
+    pub special_priority: bool,
 }
 
 impl ChildSpaceRequest {
@@ -27,11 +68,12 @@ impl ChildSpaceRequest {
             requester_element_id,
             request_type,
             requested_space,
+            special_priority: false,
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum SpaceRequestType {
     ChildSize,
     Spacing,
@@ -40,7 +82,7 @@ pub enum SpaceRequestType {
     Margin,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct Space {
     pub top: f32,
     pub right: f32,
@@ -55,6 +97,21 @@ impl Default for Space {
             right: 0.0,
             bottom: 0.0,
             left: 0.0,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct Position {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
         }
     }
 }
