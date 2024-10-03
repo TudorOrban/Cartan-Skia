@@ -1,11 +1,12 @@
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::layout::space_allocator::SpaceAllocator;
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::space_allocator::SpaceAllocator};
 
 use super::{element::{Element, ElementSize, EventType}, styles::{Border, Directions, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
 
 
 pub struct Row {
+    _id: String,
     children: Vec<Box<dyn Element>>,
     position: Point,
     size: ElementSize,
@@ -18,6 +19,7 @@ pub struct Row {
 impl Row {
     pub fn new() -> Self {
         Self {
+            _id: IDGenerator::get(),
             children: vec![],
             position: Point::new(0.0, 0.0),
             size: ElementSize::default(),
@@ -129,6 +131,10 @@ impl Element for Row {
         } else {
             layout_second_pass(self, available_space.unwrap());
         }
+    }
+
+    fn get_id(&self) -> String {
+        self._id.clone()
     }
 
     fn get_size(&self) -> ElementSize {
@@ -263,7 +269,8 @@ fn layout_children(row: &mut Row, first_pass: bool) {
     for (index, child) in row.children.iter_mut().enumerate(){
         let child_x_position = SpaceAllocator::allocate_child_x_space(
             child, index, number_of_children,
-            &mut available_width, &mut cursor_x, spacing_x
+            spacing_x, &padding,
+            &mut available_width, &mut cursor_x, 
         );
 
         let child_y_position = determine_child_y_position(child, &row.styles.alignment, available_height, base_y);

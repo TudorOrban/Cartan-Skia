@@ -1,4 +1,4 @@
-use crate::rendering::browser::elements::{element::Element, styles::Directions};
+use crate::rendering::browser::{elements::{element::Element, styles::Padding}, internal::element_id_generator::IDGenerator};
 
 
 
@@ -11,16 +11,17 @@ impl SpaceAllocator {
         child: &Box<dyn Element>,
         index: usize,
         number_of_children: usize,
+        spacing_x: f32,
+        parent_padding: &Padding,
         available_width: &mut f32,
         cursor_x: &mut f32,
-        spacing_x: f32
     ) -> f32 {
         let child_size = child.get_size();
     
-        let needed_space_allocations = SpaceAllocator::get_needed_space_allocations(child, index, number_of_children, spacing_x);
+        let space_requests = SpaceAllocator::get_space_requests(child, index, number_of_children, spacing_x, parent_padding);
     
-        let (deficit, first_deficit_index) = SpaceAllocator::attempt_space_allocations(
-            available_width, cursor_x, &needed_space_allocations
+        let (deficit, first_deficit_index) = SpaceAllocator::attempt_space_requests_allocations(
+            available_width, cursor_x, &space_requests
         );
     
         let mut child_x_position = cursor_x.clone();
@@ -35,49 +36,75 @@ impl SpaceAllocator {
         child_x_position
     }
     
-    pub fn get_needed_space_allocations(
+    pub fn get_space_requests(
         child: &Box<dyn Element>,
         index: usize,
         number_of_children: usize,
-        spacing_x: f32
-    ) -> Vec<f32> {
+        spacing_x: f32,
+        parent_padding: &Padding,
+    ) -> Vec<SpaceAllocationRequest> {
         let child_size = child.get_size();
         let mut needed_space_allocations = vec![];
     
         if index > 0 {
-            needed_space_allocations.push(spacing_x);
+            needed_space_allocations.push(
+                SpaceAllocationRequest::new(
+                    child.get_id(),
+                    SpaceRequest::Spacing(Space { left: spacing_x, ..Default::default() })
+                )
+            );
         }
     
         let children_space_allocations = vec![
-            child.get_styles().margin.clone().unwrap_or_default().left,
-            child_size.width,
-            child.get_styles().margin.clone().unwrap_or_default().right,
+            SpaceAllocationRequest::new(
+                child.get_id(),
+                SpaceRequest::Margin(Space { left: child.get_styles().margin.clone().unwrap_or_default().left, ..Default::default() })
+            ),
+            SpaceAllocationRequest::new(
+                child.get_id(),
+                SpaceRequest::Border(Space { left: child.get_styles().border.clone().unwrap_or_default().width, ..Default::default() })
+            ),
+            SpaceAllocationRequest::new(
+                child.get_id(),
+                SpaceRequest::ChildSize(Space { right: child_size.width, ..Default::default() })
+            ),
+            SpaceAllocationRequest::new(
+                child.get_id(),
+                SpaceRequest::Border(Space { right: child.get_styles().border.clone().unwrap_or_default().width, ..Default::default() })
+            ),
+            SpaceAllocationRequest::new(
+                child.get_id(),
+                SpaceRequest::Margin(Space { right: child.get_styles().margin.clone().unwrap_or_default().right, ..Default::default() })
+            ),
         ];
         needed_space_allocations.extend(children_space_allocations);
     
         if index == number_of_children - 1 {
             needed_space_allocations.push(
-                child.get_styles().padding.clone().unwrap_or_default().right
+                SpaceAllocationRequest::new(
+                    child.get_id(),
+                    SpaceRequest::Padding(Space { right: parent_padding.right, ..Default::default() })
+                )
             )
         }
     
         needed_space_allocations
     }
     
-    pub fn attempt_space_allocations(
+    pub fn attempt_space_requests_allocations(
         available_width: &mut f32,
         cursor_x: &mut f32,
-        requested_space_allocations: &Vec<f32>
+        space_allocation_requests: &Vec<SpaceAllocationRequest>
     ) -> (f32, Option<usize>) {
         let mut deficit = 0.0;
         let mut first_deficit_index = None;
     
-        for space in requested_space_allocations {
-            deficit += SpaceAllocator::attempt_space_allocation(available_width, cursor_x, space.clone());
+        for space_allocation_request in space_allocation_requests {
+            deficit += SpaceAllocator::attempt_space_allocation(available_width, cursor_x, space_allocation_request);
             
             if deficit > 0.0 {
                 if first_deficit_index.is_none() {
-                    first_deficit_index = Some(requested_space_allocations.iter().position(|&x| x == space.clone()).unwrap());
+                    first_deficit_index = Some(space_allocation_requests.iter().position(|x| *x.id == space_allocation_request.id.clone()).unwrap());
                 }
             }
         }
@@ -88,8 +115,16 @@ impl SpaceAllocator {
     pub fn attempt_space_allocation(
         available_width: &mut f32,
         cursor_x: &mut f32,
-        requested_width: f32,
+        space_allocation_request: &SpaceAllocationRequest,
     ) -> f32 {
+        let requested_width = match space_allocation_request.space_request {
+            SpaceRequest::Margin(space) => space.left + space.right,
+            SpaceRequest::Border(space) => space.left + space.right,
+            SpaceRequest::Padding(space) => space.left + space.right,
+            SpaceRequest::Spacing(space) => space.left + space.right,
+            SpaceRequest::ChildSize(space) => space.left + space.right,
+        };
+
         let remaining_width = *available_width - requested_width;
         if remaining_width >= 0.0 {
             *cursor_x += requested_width;
@@ -103,12 +138,28 @@ impl SpaceAllocator {
     }
 }
 
+pub struct SpaceAllocationRequest {
+    pub id: String,
+    pub requester_element_id: String,
+    pub space_request: SpaceRequest,
+}
+
+impl SpaceAllocationRequest {
+    pub fn new(requester_element_id: String, space_request: SpaceRequest) -> Self {
+        Self {
+            id: IDGenerator::get(),
+            requester_element_id,
+            space_request,
+        }
+    }
+}
+
 pub enum SpaceRequest {
-    Padding(Space),
     Margin(Space),
-    ChildWidth(f32),
-    ChildHeight(f32),
-    Spacing(Directions),
+    Border(Space),
+    Padding(Space),
+    Spacing(Space),
+    ChildSize(Space),
 }
 
 #[derive(Clone, Copy)]

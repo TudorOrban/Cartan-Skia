@@ -14,5 +14,6 @@ skia-safe = { version = "0.78.2", features = ["gl"] }
 
 surf = "2.3.1"
 async-std = "1.10"
+lazy_static = "1.4"
 
 kuchiki = "0.8"

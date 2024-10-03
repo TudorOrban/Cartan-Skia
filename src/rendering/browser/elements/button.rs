@@ -1,12 +1,15 @@
 use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
+use crate::rendering::browser::internal::element_id_generator::IDGenerator;
+
 use super::{element::{Element, ElementSize, EventType}, styles::Styles};
 
 
 pub struct Button {
-    pub position: Point,
-    pub size: ElementSize,
-    pub styles: Styles,
+    _id: String,
+    position: Point,
+    size: ElementSize,
+    styles: Styles,
     pub on_click: Box<dyn FnMut()>,
 }
 
@@ -15,6 +18,7 @@ impl Button {
         let styles = styles.unwrap_or_default();
 
         Self { 
+            _id: IDGenerator::get(),
             position: Point::new(0.0, 0.0), 
             size: Button::get_size_from_styles(styles.clone()),
             styles,
@@ -119,6 +123,10 @@ impl Element for Button {
         }
     }
 
+    fn get_id(&self) -> String {
+        self._id.clone()
+    }
+    
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }
