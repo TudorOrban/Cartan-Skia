@@ -44,12 +44,18 @@ impl Default for Size {
 
 #[derive(Clone, Copy)]
 pub enum SizeMode {
+    FitContent,    // Fit content to the available space.
     Exact,  // Use the specified width and height exactly.
-    FitContent,    // Fit content to the available space, maintaining the aspect ratio.
     FillParent,   // Expand to fill the available space, respecting max constraints if provided.
     FitParentWidth, // Expand to fill the available width, respecting max constraints if provided.
-    FitHeight, // Expand to fill the available height, respecting max constraints if provided.
+    FitParentHeight, // Expand to fill the available height, respecting max constraints if provided.
     Percent(f32), // Use a percentage of the available space.
+}
+
+impl Default for SizeMode {
+    fn default() -> Self {
+        Self::FitContent
+    }
 }
 
 #[derive(Clone, Copy)]
