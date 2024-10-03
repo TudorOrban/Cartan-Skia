@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
-use super::{element::{Element, ElementSize, EventType}, styles::{Size, Styles}};
+use super::{element::{Element, ElementSize, EventType}, styles::Styles};
 
 
 pub struct Button {
@@ -106,7 +106,15 @@ impl Element for Button {
         self.position = position;
     }
 
+    fn set_size(&mut self, size: ElementSize) {
+        self.size = size;
+    }
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
+    }
+
+    fn get_styles(&self) -> Styles {
+        self.styles.clone()
     }
 }
