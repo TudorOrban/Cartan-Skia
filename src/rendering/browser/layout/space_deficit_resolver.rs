@@ -1,8 +1,8 @@
 
-pub struct SpaceDeficitResolver {
+// pub struct SpaceDeficitResolver {
 
-}
+// }
 
-impl SpaceDeficitResolver {
+// impl SpaceDeficitResolver {
     
-}
+// }

@@ -2,7 +2,7 @@ use skia_safe::Point;
 
 use crate::rendering::browser::elements::{row::Row, styles::{Border, Margin, Padding}};
 
-use super::space_allocator::SpaceAllocator;
+use super::{space_allocator::SpaceAllocator, types::ChildSpaceAllocationPlan};
 
 
 pub struct RowSpaceDistributor {
@@ -12,25 +12,14 @@ pub struct RowSpaceDistributor {
 
 impl RowSpaceDistributor {
 
-    pub fn distribute_row_children(row: &mut Row, first_pass: bool) {
-        let (mut available_width, available_height, margin, padding, border, spacing_x) = 
-            RowSpaceDistributor::get_needed_properties(row, first_pass);
-
-        let mut cursor_x = row.position.x + margin.left + padding.left + border.width;
-        let base_y = row.position.y + margin.top + padding.top + border.width;
-        let number_of_children = row.children.len();
-
+    pub fn distribute_row_children(row: &mut Row) {
+        
         for (index, child) in row.children.iter_mut().enumerate(){
-            // let child_x_position = SpaceAllocator::allocate_child_x_space(
-            //     child, index, number_of_children,
-            //     spacing_x, &padding,
-            //     &mut available_width, &mut cursor_x, 
-            // );
-
-            // let child_y_position = SpaceAllocator::allocate_child_y_space(child, &row.styles.alignment, available_height, base_y);
-
-            // child.set_position(Point::new(child_x_position, child_y_position));
+            let child_allocation_plan = row.row_allocation_plan.child_space_allocation_plans
+                .iter().find(|child_plan| child_plan.element_id == child.get_id())
+                .unwrap_or(&ChildSpaceAllocationPlan::new(child.get_id()));
         }
+
     }
 
     // Utils

@@ -20,32 +20,34 @@ impl SpaceAllocator {
     ) -> ChildSpaceAllocationPlan {
         let mut child_allocation_plan = ChildSpaceAllocationPlan::new(child.get_id());
         let mut child_position = Position::default();
-        
-        let space_allocations: Vec<ChildSpaceAllocation> = space_allocation_requests.into_iter().map(|request| {
-            let (allocation, cursor_x) = SpaceAllocator::attempt_space_allocation(
-                available_width, cursor_x, request
-            );
-
-            if allocation.request.request_type == SpaceRequestType::ChildSize {
-                child_position = Position { x: cursor_x.clone(), y: 0.0 };
-            }
-
-            allocation
-        }).collect();
-        child_allocation_plan.child_allocations = space_allocations;
+        let mut total_planned_allocation_space = Space::default();
         
         let child_y_position = SpaceAllocator::allocate_child_y_space(child, alignment, available_height, base_y);
         child_position.y = child_y_position;
+        
+        let space_allocations: Vec<ChildSpaceAllocation> = space_allocation_requests.into_iter().map(|request| {
+            let allocation = SpaceAllocator::allocate_child_x_space(
+                available_width, cursor_x, &mut child_position, request
+            );
+
+            total_planned_allocation_space = total_planned_allocation_space + allocation.planned_allocation_space;
+
+            allocation
+        }).collect();
+
+        child_allocation_plan.child_allocations = space_allocations;
         child_allocation_plan.child_position = child_position;
+        child_allocation_plan.total_planned_allocation_space = total_planned_allocation_space;
 
         child_allocation_plan
     }
 
-    pub fn attempt_space_allocation(
+    fn allocate_child_x_space(
         available_width: &mut f32,
         cursor_x: &mut f32,
+        child_position: &mut Position,
         space_allocation_request: ChildSpaceRequest,
-    ) -> (ChildSpaceAllocation, f32) {
+    ) -> ChildSpaceAllocation {
         let mut allocation = ChildSpaceAllocation::new(space_allocation_request.clone());
 
         let requested_width = SpaceAllocator::get_requested_width(
@@ -68,8 +70,12 @@ impl SpaceAllocator {
 
         allocation.has_planned = true;
         allocation.remaining_width = *available_width;
+        
+        if allocation.request.request_type == SpaceRequestType::ChildSize {
+            child_position.x = *cursor_x - requested_width;
+        }
 
-        (allocation, *cursor_x)
+        allocation
     }
 
     fn get_requested_width(
@@ -85,7 +91,7 @@ impl SpaceAllocator {
         }
     }
 
-    pub fn allocate_child_y_space(
+    fn allocate_child_y_space(
         child: &Box<dyn Element>,
         alignment: &Option<RowItemsAlignment>,
         available_height: f32,

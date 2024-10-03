@@ -35,7 +35,7 @@ impl RowLayoutManager {
     pub fn layout_second_pass(row: &mut Row, allocated_size: ElementSize) {
         row.alllocated_size = Some(allocated_size);
 
-        RowSpaceDistributor::distribute_row_children(row, false);
+        RowSpaceDistributor::distribute_row_children(row);
     }
 
 
