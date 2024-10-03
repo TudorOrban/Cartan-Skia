@@ -21,18 +21,20 @@ impl SpaceDistributor {
         let number_of_children = row.children.len();
 
         for (index, child) in row.children.iter_mut().enumerate(){
-            let child_x_position = SpaceAllocator::allocate_child_x_space(
-                child, index, number_of_children,
-                spacing_x, &padding,
-                &mut available_width, &mut cursor_x, 
-            );
+            // let child_x_position = SpaceAllocator::allocate_child_x_space(
+            //     child, index, number_of_children,
+            //     spacing_x, &padding,
+            //     &mut available_width, &mut cursor_x, 
+            // );
 
-            let child_y_position = SpaceAllocator::allocate_child_y_space(child, &row.styles.alignment, available_height, base_y);
+            // let child_y_position = SpaceAllocator::allocate_child_y_space(child, &row.styles.alignment, available_height, base_y);
 
-            child.set_position(Point::new(child_x_position, child_y_position));
+            // child.set_position(Point::new(child_x_position, child_y_position));
         }
     }
 
+    // Utils
+    // - To be moved
     fn get_needed_properties(
         row: &mut Row, 
         first_pass: bool
@@ -55,4 +57,5 @@ impl SpaceDistributor {
 
         (available_width, available_height, margin, padding, border, spacing_x)
     }
+
 }

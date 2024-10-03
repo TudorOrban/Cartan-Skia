@@ -10,6 +10,14 @@ pub struct LayoutManager {
     
 }
 
+/*
+ * Coordinator of the layout process
+ * Workflow:
+ *   A. Layout computation First pass: starting from leaf nodes to root node,
+ * allocating the natural/requested size to each element
+ *   B. Layout computation Second pass: starting from root node to leaf nodes,
+ * recursively distribute the available space according to layout properties
+ */
 impl LayoutManager {
 
     pub fn layout(row: &mut Row, available_space: Option<ElementSize>) {

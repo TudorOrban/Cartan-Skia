@@ -1,28 +1,43 @@
 use crate::rendering::browser::internal::element_id_generator::IDGenerator;
 
 
-pub struct SpaceAllocationRequest {
-    pub id: String,
-    pub requester_element_id: String,
-    pub space_request: SpaceRequest,
+pub struct SpaceAllocationPlan {
+    pub element_id: String,
+    
 }
 
-impl SpaceAllocationRequest {
-    pub fn new(requester_element_id: String, space_request: SpaceRequest) -> Self {
+pub struct ChildSpaceAllocation {
+    pub request: ChildSpaceRequest,
+    pub planned_allocation_space: Space,
+
+}
+
+#[derive(Clone)]
+pub struct ChildSpaceRequest {
+    pub id: String,
+    pub requester_element_id: String,
+    pub request_type: SpaceRequestType,
+    pub requested_space: Space,
+}
+
+impl ChildSpaceRequest {
+    pub fn new(requester_element_id: String, request_type: SpaceRequestType, requested_space: Space) -> Self {
         Self {
             id: IDGenerator::get(),
             requester_element_id,
-            space_request,
+            request_type,
+            requested_space,
         }
     }
 }
 
-pub enum SpaceRequest {
-    ChildSize(Space),
-    Spacing(Space),
-    Padding(Space),
-    Border(Space),
-    Margin(Space),
+#[derive(Clone)]
+pub enum SpaceRequestType {
+    ChildSize,
+    Spacing,
+    Padding,
+    Border,
+    Margin,
 }
 
 #[derive(Clone, Copy)]
