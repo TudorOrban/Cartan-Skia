@@ -280,48 +280,89 @@ fn layout_children(row: &mut Row, first_pass: bool) {
 
     let mut cursor_x = row.position.x + margin.left + padding.left + border.width;
     let base_y = row.position.y + margin.top + padding.top + border.width;
+    let number_of_children = row.children.len();
 
-    for child in row.children.iter_mut() {
-        let child_size = child.get_size();
-
-        let child_x_position = allocate_child_x_space(child, &mut available_width, &mut cursor_x, spacing_x);
+    for (index, child) in row.children.iter_mut().enumerate(){
+        let child_x_position = allocate_child_x_space(
+            child, index, number_of_children,
+            &mut available_width, &mut cursor_x, spacing_x
+        );
 
         let child_y_position = determine_child_y_position(child, &row.styles.alignment, available_height, base_y);
 
-        child.set_position(Point::new(cursor_x, child_y_position));
-        cursor_x += child_size.width + spacing_x;
+        child.set_position(Point::new(child_x_position, child_y_position));
     }
 }
 
 fn allocate_child_x_space(
     child: &Box<dyn Element>,
+    index: usize,
+    number_of_children: usize,
     available_width: &mut f32,
     cursor_x: &mut f32,
     spacing_x: f32
 ) -> f32 {
-    let mut child_x_position = cursor_x.clone();
     let child_size = child.get_size();
 
-    let needed_space_allocations = vec![
-        child.get_styles().margin.clone().unwrap_or_default().left,
-        child_size.width,
-        child.get_styles().margin.clone().unwrap_or_default().right,
-        spacing_x
-    ];
+    let needed_space_allocations = get_needed_space_allocations(child, index, number_of_children, spacing_x);
 
     let (deficit, first_deficit_index) = attempt_space_allocations(
         available_width, cursor_x, &needed_space_allocations
     );
 
+    let mut child_x_position = cursor_x.clone();
+
     if first_deficit_index.is_none() {
         child_x_position = cursor_x.clone() - child_size.width - spacing_x;
     } else {
         let deficit_index = first_deficit_index.unwrap();
-        let deficit_space = needed_space_allocations.iter().take(deficit_index + 1).sum::<f32>();
-        child_x_position = cursor_x.clone() - deficit_space;
+        match deficit_index {
+            0 => {
+                child_x_position = cursor_x.clone() - child_size.width - spacing_x;
+            },
+            1 => {
+                child_x_position = cursor_x.clone() - child_size.width - spacing_x;
+            },
+            2 => {
+                child_x_position = cursor_x.clone() - child_size.width - spacing_x;
+            },
+            3 => {
+                child_x_position = cursor_x.clone() - spacing_x;
+            },
+            _ => {}
+        }
     }
 
     child_x_position
+}
+
+fn get_needed_space_allocations(
+    child: &Box<dyn Element>,
+    index: usize,
+    number_of_children: usize,
+    spacing_x: f32
+) -> Vec<f32> {
+    let child_size = child.get_size();
+    let mut needed_space_allocations = vec![];
+
+    if index > 0 {
+        needed_space_allocations.push(spacing_x);
+    }
+
+    let children_space_allocations = vec![
+        child.get_styles().margin.clone().unwrap_or_default().left,
+        child_size.width,
+        child.get_styles().margin.clone().unwrap_or_default().right,
+    ];
+    needed_space_allocations.extend(children_space_allocations);
+
+    if index == number_of_children - 1 {
+        needed_space_allocations.push(
+            child.get_styles().padding.clone().unwrap_or_default().right
+        )
+    }
+
+    needed_space_allocations
 }
 
 fn attempt_space_allocations(
