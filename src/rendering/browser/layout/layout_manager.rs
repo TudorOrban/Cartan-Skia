@@ -1,11 +1,9 @@
-use skia_safe::Point;
+use crate::rendering::browser::elements::{element::ElementSize, row::Row};
 
-use crate::rendering::browser::elements::{element::{Element, ElementSize}, row::Row, styles::RowItemsAlignment};
-
-use super::{size_evaluator::SizeEvaluator, space_allocator::SpaceAllocator, space_distributor::SpaceDistributor};
+use super::{size_evaluator::SizeEvaluator, space_allocation_manager::RowSpaceAllocationManager, space_distributor::RowSpaceDistributor};
 
 
-pub struct LayoutManager {
+pub struct RowLayoutManager {
     
     
 }
@@ -18,26 +16,26 @@ pub struct LayoutManager {
  *   B. Layout computation Second pass: starting from root node to leaf nodes,
  * recursively distribute the available space according to layout properties
  */
-impl LayoutManager {
+impl RowLayoutManager {
 
     pub fn layout(row: &mut Row, available_space: Option<ElementSize>) {
         if available_space.is_none() {
-            LayoutManager::layout_first_pass(row);
+            RowLayoutManager::layout_first_pass(row);
         } else {
-            LayoutManager::layout_second_pass(row, available_space.unwrap());
+            RowLayoutManager::layout_second_pass(row, available_space.unwrap());
         }
     }
     
     pub fn layout_first_pass(row: &mut Row) {
         SizeEvaluator::determine_row_sizes(row);
 
-        SpaceDistributor::distribute_row_children(row, true);
+        RowSpaceAllocationManager::allocate_space_to_row_children(row);
     }
 
     pub fn layout_second_pass(row: &mut Row, allocated_size: ElementSize) {
         row.alllocated_size = Some(allocated_size);
 
-        SpaceDistributor::distribute_row_children(row, false);
+        RowSpaceDistributor::distribute_row_children(row, false);
     }
 
 

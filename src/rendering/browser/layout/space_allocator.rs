@@ -1,9 +1,6 @@
-use skia_safe::Point;
+use crate::rendering::browser::elements::{element::Element, styles::RowItemsAlignment};
 
-use crate::rendering::browser::elements::{element::Element, row::Row, styles::{Border, Margin, Padding, RowItemsAlignment}};
-
-use super::{space_requester::SpaceRequester, types::{ChildSpaceAllocation, ChildSpaceAllocationPlan, ChildSpaceRequest, Position, Space, SpaceRequestType}};
-
+use super::types::{ChildSpaceAllocation, ChildSpaceAllocationPlan, ChildSpaceRequest, Position, Space, SpaceRequestType};
 
 
 pub struct SpaceAllocator {
@@ -12,58 +9,43 @@ pub struct SpaceAllocator {
 
 impl SpaceAllocator {
 
-    #[allow(dead_code)]
-    pub fn allocate_space_to_row_children(row: &mut Row) {
-        let (mut available_width, available_height, margin, padding, border, spacing_x) = 
-            SpaceAllocator::get_needed_properties(row);
-
-        let plan = ChildSpaceAllocationPlan::new(row.get_id());
-
-        let mut cursor_x = row.position.x + margin.left + padding.left + border.width;
-        let base_y = row.position.y + margin.top + padding.top + border.width;
-        let number_of_children = row.children.len();
-
-        for (index, child) in row.children.iter_mut().enumerate(){
-            let space_allocation_requests = SpaceRequester::get_child_space_allocation_requests(
-                child, index, number_of_children, spacing_x, &padding
-            );
-
-            let child_x_position = SpaceAllocator::allocate_child_x_space(
-                child.get_id(), child.get_size().width, spacing_x, 
-                space_allocation_requests,
-                &mut available_width, &mut cursor_x, 
-            );
-
-            let child_y_position = SpaceAllocator::allocate_child_y_space(child, &row.styles.alignment, available_height, base_y);
-
-            child.set_position(Point::new(child_x_position, child_y_position));
-        }
-    }
-
-    pub fn allocate_child_x_space(
-        child_id: String,
-        child_width: f32,
-        spacing_x: f32,
+    pub fn allocate_child_spaces(
+        child: &Box<dyn Element>,
         space_allocation_requests: Vec<ChildSpaceRequest>,
         available_width: &mut f32,
-        cursor_x: &mut f32
-    ) -> Vec<ChildSpaceAllocation> {
+        cursor_x: &mut f32,
+        alignment: &Option<RowItemsAlignment>,
+        available_height: f32,
+        base_y: f32
+    ) -> ChildSpaceAllocationPlan {
+        let mut child_allocation_plan = ChildSpaceAllocationPlan::new(child.get_id());
+        let mut child_position = Position::default();
+        
         let space_allocations: Vec<ChildSpaceAllocation> = space_allocation_requests.into_iter().map(|request| {
-            let allocation = SpaceAllocator::attempt_space_allocation(
+            let (allocation, cursor_x) = SpaceAllocator::attempt_space_allocation(
                 available_width, cursor_x, request
             );
 
+            if allocation.request.request_type == SpaceRequestType::ChildSize {
+                child_position = Position { x: cursor_x.clone(), y: 0.0 };
+            }
+
             allocation
         }).collect();
+        child_allocation_plan.child_allocations = space_allocations;
+        
+        let child_y_position = SpaceAllocator::allocate_child_y_space(child, alignment, available_height, base_y);
+        child_position.y = child_y_position;
+        child_allocation_plan.child_position = child_position;
 
-        space_allocations
+        child_allocation_plan
     }
-    
+
     pub fn attempt_space_allocation(
         available_width: &mut f32,
         cursor_x: &mut f32,
         space_allocation_request: ChildSpaceRequest,
-    ) -> ChildSpaceAllocation {
+    ) -> (ChildSpaceAllocation, f32) {
         let mut allocation = ChildSpaceAllocation::new(space_allocation_request.clone());
 
         let requested_width = SpaceAllocator::get_requested_width(
@@ -84,13 +66,10 @@ impl SpaceAllocator {
             allocation.deficit = Space { left: -remaining_width, right: 0.0, ..Default::default() };
         }
 
-        if space_allocation_request.request_type == SpaceRequestType::ChildSize {
-            allocation.child_position = Position { x: *cursor_x, y: 0.0 };
-        }
         allocation.has_planned = true;
         allocation.remaining_width = *available_width;
 
-        allocation
+        (allocation, *cursor_x)
     }
 
     fn get_requested_width(
@@ -122,17 +101,4 @@ impl SpaceAllocator {
         child_y_position
     }
 
-    // Utils
-    fn get_needed_properties(
-        row: &mut Row
-    ) -> (f32, f32, Margin, Padding, Border, f32) {
-        let available_width = row.requested_size.width.clone();
-        let available_height = row.requested_size.height.clone();
-        let margin = row.styles.margin.clone().unwrap_or_default();
-        let padding = row.styles.padding.clone().unwrap_or_default();
-        let border = row.styles.border.clone().unwrap_or_default();
-        let spacing_x = row.get_spacing_x();
-
-        (available_width, available_height, margin, padding, border, spacing_x)
-    }
 }

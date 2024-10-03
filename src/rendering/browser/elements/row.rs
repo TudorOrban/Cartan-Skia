@@ -1,10 +1,8 @@
-use std::alloc::Layout;
-
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{layout_manager::LayoutManager, space_allocator::SpaceAllocator, types::RowSpaceAllocationPlan}};
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{layout_manager::RowLayoutManager, types::RowSpaceAllocationPlan}};
 
-use super::{element::{Element, ElementSize, EventType}, styles::{Border, Directions, Margin, Padding, RowItemsAlignment, Size, SizeMode, Spacing, Styles}};
+use super::{element::{Element, ElementSize, EventType}, styles::{Directions, Margin, RowItemsAlignment, Spacing, Styles}};
 
 
 pub struct Row {
@@ -131,7 +129,7 @@ impl Element for Row {
     }
 
     fn layout(&mut self, available_space: Option<ElementSize>) {
-        LayoutManager::layout(self, available_space);
+        RowLayoutManager::layout(self, available_space);
     }
 
     fn get_id(&self) -> String {

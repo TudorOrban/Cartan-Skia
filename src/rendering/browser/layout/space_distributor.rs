@@ -5,16 +5,16 @@ use crate::rendering::browser::elements::{row::Row, styles::{Border, Margin, Pad
 use super::space_allocator::SpaceAllocator;
 
 
-pub struct SpaceDistributor {
+pub struct RowSpaceDistributor {
     
     
 }
 
-impl SpaceDistributor {
+impl RowSpaceDistributor {
 
     pub fn distribute_row_children(row: &mut Row, first_pass: bool) {
         let (mut available_width, available_height, margin, padding, border, spacing_x) = 
-            SpaceDistributor::get_needed_properties(row, first_pass);
+            RowSpaceDistributor::get_needed_properties(row, first_pass);
 
         let mut cursor_x = row.position.x + margin.left + padding.left + border.width;
         let base_y = row.position.y + margin.top + padding.top + border.width;

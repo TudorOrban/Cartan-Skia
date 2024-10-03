@@ -18,6 +18,7 @@ impl RowSpaceAllocationPlan {
 pub struct ChildSpaceAllocationPlan {
     pub element_id: String,
     pub child_allocations: Vec<ChildSpaceAllocation>,
+    pub child_position: Position,
 }
 
 impl ChildSpaceAllocationPlan {
@@ -25,6 +26,7 @@ impl ChildSpaceAllocationPlan {
         Self {
             element_id,
             child_allocations: vec![],
+            child_position: Position::default(),
         }
     }
 }
@@ -34,7 +36,6 @@ pub struct ChildSpaceAllocation {
     pub request: ChildSpaceRequest,
     pub planned_allocation_space: Space,
     pub deficit: Space,
-    pub child_position: Position,
     pub has_planned: bool,
     pub remaining_width: f32,
 }
@@ -45,7 +46,6 @@ impl ChildSpaceAllocation {
             request,
             planned_allocation_space: Space::default(),
             deficit: Space::default(),
-            child_position: Position::default(),
             has_planned: false,
             remaining_width: 0.0,
         }
