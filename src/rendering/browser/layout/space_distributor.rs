@@ -19,7 +19,16 @@ impl RowSpaceDistributor {
         Self::run_initial_plan_scan(row, &mut remaining_allocation_size);
         
         if remaining_allocation_size.width < 0.0 {
-            SpaceDeficitResolver::resolve_space_deficit(row, remaining_allocation_size);
+            remaining_allocation_size = ElementSize { // Reverse the sign to treat it as a deficit
+                width: - remaining_allocation_size.width,
+                height: - remaining_allocation_size.height,
+            }; 
+
+            let report = SpaceDeficitResolver::resolve_space_deficit(row, &mut remaining_allocation_size);
+
+            
+        } else {
+            // Check if special layout properties are set, eg Fill, Justify, etc
         }
     }
 
