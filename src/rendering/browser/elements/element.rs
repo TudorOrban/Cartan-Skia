@@ -1,7 +1,9 @@
 use skia_safe::{Canvas, Point};
 use std::ops::Sub;
 
-use super::styles::{Directions, Styles};
+use crate::rendering::browser::layout::types::ChildSpaceAllocationPlan;
+
+use super::{common::ElementType, styles::{Directions, Styles}};
 
 
 pub trait Element {
@@ -15,9 +17,13 @@ pub trait Element {
     fn layout(&mut self, available_space: Option<ElementSize>);
 
     fn get_id(&self) -> String;
+    fn get_element_type(&self) -> ElementType;
+    fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn Element>>>;
     fn get_size(&self) -> ElementSize;
     fn get_styles(&self) -> Styles;
     fn is_variable_size(&self) -> Directions;
+
+    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan);
 }
 
 pub enum EventType {

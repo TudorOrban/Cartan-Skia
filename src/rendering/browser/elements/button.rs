@@ -1,14 +1,16 @@
 use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
-use crate::rendering::browser::internal::element_id_generator::IDGenerator;
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::types::ChildSpaceAllocationPlan};
+use crate::rendering::browser::layout::types::VerticalHorizontal;
 
-use super::{element::{Element, ElementSize, EventType}, styles::{Directions, Styles}};
+use super::{common::ElementType, element::{Element, ElementSize, EventType}, styles::{Directions, Styles}};
 
 
 pub struct Button {
     _id: String,
     position: Point,
     size: ElementSize,
+    allocated_size: Option<ElementSize>,
     styles: Styles,
     pub on_click: Box<dyn FnMut()>,
 }
@@ -21,6 +23,7 @@ impl Button {
             _id: IDGenerator::get(),
             position: Point::new(0.0, 0.0), 
             size: Button::get_size_from_styles(styles.clone()),
+            allocated_size: None,
             styles,
             on_click 
         }
@@ -127,6 +130,14 @@ impl Element for Button {
         self._id.clone()
     }
 
+    fn get_element_type(&self) -> super::common::ElementType {
+        ElementType::Button
+    }
+
+    fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn Element>>> {
+        None
+    }
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }
@@ -144,5 +155,11 @@ impl Element for Button {
         }
 
         directions
+    }
+    
+    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan) {
+        // Apply the plan to the Button
+        self.position = Point::new(plan.child_position.x, plan.child_position.y);
+        self.size = ElementSize { width: plan.total_planned_allocation_space.horizontal(), height: self.size.height };
     }
 }

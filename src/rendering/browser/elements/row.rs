@@ -1,9 +1,9 @@
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{row_layout_manager::RowLayoutManager, types::{DeficitResolutionReport, RowSpaceAllocationPlan}}};
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{row_layout_manager::RowLayoutManager, types::{ChildSpaceAllocationPlan, DeficitResolutionReport, RowSpaceAllocationPlan}}};
+use crate::rendering::browser::layout::types::VerticalHorizontal;
 
-use super::{element::{Element, ElementSize, EventType}, styles::{Directions, Margin, RowItemsAlignment, Spacing, Styles}};
-
+use super::{common::ElementType, element::{Element, ElementSize, EventType}, styles::{Directions, Margin, RowItemsAlignment, Spacing, Styles}};
 
 pub struct Row {
     _id: String,
@@ -138,6 +138,14 @@ impl Element for Row {
         self._id.clone()
     }
 
+    fn get_element_type(&self) -> ElementType {
+        ElementType::Row
+    }
+    
+    fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn Element>>> {
+        Some(&mut self.children)
+    }
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }
@@ -155,5 +163,30 @@ impl Element for Row {
         }
 
         directions
+    }
+
+    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan) {
+        self.position = Point::new(plan.child_position.x, plan.child_position.y);
+        self.size = ElementSize { 
+            width: plan.total_planned_allocation_space.horizontal(), 
+            height: self.size.height
+        };
+
+        // Collect child IDs and their plans without mutating anything
+        let child_ids_and_plans: Vec<(String, ChildSpaceAllocationPlan)> = self.children.iter()
+            .map(|child| child.get_id())
+            .filter_map(|id| {
+                self.row_allocation_plan.child_space_allocation_plans.iter()
+                    .find(|cp| cp.element_id == id)
+                    .map(|cp| (id, cp.clone()))
+            })
+            .collect();
+
+        // Now, mutate children using the collected plans
+        for child in self.children.iter_mut() {
+            if let Some((_, plan)) = child_ids_and_plans.iter().find(|(child_id, _)| *child_id == child.get_id()) {
+                child.enact_space_allocation_plan(plan);
+            }
+        }
     }
 }
