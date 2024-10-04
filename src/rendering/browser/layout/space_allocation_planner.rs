@@ -24,6 +24,7 @@ impl SpaceAllocationPlanner {
         
         let child_y_position = SpaceAllocationPlanner::plan_child_y_allocation_space(child, alignment, available_height, base_y);
         child_position.y = child_y_position;
+        total_planned_allocation_space.top = available_height;
         
         let space_allocations: Vec<ChildSpacePlannedAllocation> = space_allocation_requests.into_iter().map(|request| {
             let allocation = SpaceAllocationPlanner::plan_child_x_allocation_space(

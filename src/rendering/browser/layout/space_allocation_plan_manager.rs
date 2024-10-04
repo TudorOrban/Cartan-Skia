@@ -33,8 +33,6 @@ impl SpaceAllocationPlanManager {
             plan.child_space_allocation_plans.push(child_allocation_plan);
         }
 
-        println!("Cursor x: {:?}", cursor_x);
-
         row.row_allocation_plan = plan;
     }
     

@@ -67,6 +67,14 @@ pub fn get_ui_body() -> Box<dyn Element> {
                     ..Default::default()
                 })
         ),
+        Box::new(
+            Button::new(None, Box::new(|| println!("Button 6 clicked")))
+                .set_styles(Styles {
+                    size: Some(Size { width: Some(60.0), height: Some(60.0), mode: Some(SizeMode::FitContent) }),
+                    color: Some(skia_safe::Color::from_argb(255, 130, 70, 170)),
+                    ..Default::default()
+                })
+        ),
     ];
 
     let second_row = Box::new(Row::new()
@@ -113,7 +121,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
-            color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
+            // color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
             ..Default::default()
         })
     );

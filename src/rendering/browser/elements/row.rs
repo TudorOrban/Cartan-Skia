@@ -118,12 +118,10 @@ impl Element for Row {
 
     fn set_position(&mut self, position: Point) {
         self.position = position;
-        self.layout(None);
     }
 
     fn set_size(&mut self, size: ElementSize) {
         self.size = size;
-        self.layout(None);
     }
 
     fn layout(&mut self, available_space: Option<ElementSize>) {
@@ -140,6 +138,10 @@ impl Element for Row {
     
     fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn Element>>> {
         Some(&mut self.children)
+    }
+
+    fn get_position(&self) -> Point {
+        self.position
     }
 
     fn get_size(&self) -> ElementSize {
@@ -174,7 +176,7 @@ impl Element for Row {
         self.size = allocation_size.clone();
         self.alllocated_size = Some(allocation_size.clone());
 
-        println!("Distributing children for row with ID: {}", self.get_id());
+        // println!("Distributing children for row with ID: {}", self.get_id());
         SpaceDistributionManager::distribute_row_children(self);
 
         let child_plans = self.row_allocation_plan.child_space_allocation_plans
@@ -183,9 +185,10 @@ impl Element for Row {
             .collect::<Vec<_>>();
 
         for child in self.get_children_mut().unwrap_or(&mut vec![]) {
-            if let Some((_, position, size)) = child_plans.iter().find(|(id, _, _)| *id == child.get_id()) {
-                child.enact_allocation_plan(position.clone(), size.clone());
-            }
+            // if let Some((_, position, size)) = child_plans.iter().find(|(id, _, _)| *id == child.get_id()) {
+            // }
+            child.enact_allocation_plan(Position { x: child.get_position().x, y: child.get_position().y }, child.get_size().clone());
+
         }
     }
 }

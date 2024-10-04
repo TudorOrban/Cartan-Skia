@@ -19,6 +19,8 @@ pub trait Element {
     fn get_id(&self) -> String;
     fn get_element_type(&self) -> ElementType;
     fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn Element>>>;
+    
+    fn get_position(&self) -> Point;
     fn get_size(&self) -> ElementSize;
     fn get_styles(&self) -> Styles;
     fn is_variable_size(&self) -> Directions;

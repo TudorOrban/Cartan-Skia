@@ -138,6 +138,10 @@ impl Element for Button {
         None
     }
 
+    fn get_position(&self) -> Point {
+        self.position
+    }
+
     fn get_size(&self) -> ElementSize {
         self.size.clone()
     }
