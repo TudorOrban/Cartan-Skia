@@ -1,7 +1,7 @@
 use skia_safe::{Canvas, Point};
 use std::ops::Sub;
 
-use crate::rendering::browser::layout::types::ChildSpaceAllocationPlan;
+use crate::rendering::browser::layout::types::{ChildSpaceAllocationPlan, Position};
 
 use super::{common::ElementType, styles::{Directions, Styles}};
 
@@ -23,7 +23,12 @@ pub trait Element {
     fn get_styles(&self) -> Styles;
     fn is_variable_size(&self) -> Directions;
 
-    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan);
+    // fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan);
+
+
+    // Refactored system
+    fn compute_allocation_plan(&mut self);
+    fn enact_allocation_plan(&mut self, allocated_position: Position, allocated_size: ElementSize);
 }
 
 pub enum EventType {
@@ -32,7 +37,7 @@ pub enum EventType {
     KeyPress(char),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ElementSize {
     pub width: f32,
     pub height: f32,

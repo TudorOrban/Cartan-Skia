@@ -1,7 +1,7 @@
 use skia_safe::{Canvas, Contains, Paint, Point, Rect};
 
 use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::types::ChildSpaceAllocationPlan};
-use crate::rendering::browser::layout::types::VerticalHorizontal;
+use crate::rendering::browser::layout::types::{Position, VerticalHorizontal};
 
 use super::{common::ElementType, element::{Element, ElementSize, EventType}, styles::{Directions, Styles}};
 
@@ -156,10 +156,25 @@ impl Element for Button {
 
         directions
     }
-    
-    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan) {
-        // Apply the plan to the Button
-        self.position = Point::new(plan.child_position.x, plan.child_position.y);
-        self.size = ElementSize { width: plan.total_planned_allocation_space.horizontal(), height: self.size.height };
+
+    fn compute_allocation_plan(&mut self) {
+        if let Some(size) = &self.styles.size {
+            if let Some(width) = size.width {
+                self.size.width = width;
+            }
+            if let Some(height) = size.height {
+                self.size.height = height;
+            }
+        } else {
+            self.size = ElementSize {
+                width: 100.0,
+                height: 40.0,
+            };
+        }
+    }
+
+    fn enact_allocation_plan(&mut self, allocated_position: Position, allocated_size: ElementSize) {
+        self.set_position(Point::new(allocated_position.x, allocated_position.y));
+        self.set_size(allocated_size);
     }
 }

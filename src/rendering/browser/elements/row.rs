@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{row_layout_manager::RowLayoutManager, types::{ChildSpaceAllocationPlan, DeficitResolutionReport, RowSpaceAllocationPlan}}};
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{row_layout_manager::RowLayoutManager, space_distribution_manager::SpaceDistributionManager, types::{ChildSpaceAllocationPlan, DeficitResolutionReport, Position, RowSpaceAllocationPlan}}};
 use crate::rendering::browser::layout::types::VerticalHorizontal;
 
 use super::{common::ElementType, element::{Element, ElementSize, EventType}, styles::{Directions, Margin, RowItemsAlignment, Spacing, Styles}};
@@ -66,11 +66,6 @@ impl Row {
     
     pub fn add_children(mut self, children: Vec<Box<dyn Element>>) -> Self {
         self.children.extend(children);
-        self
-    }
-
-    pub fn request_layout(mut self, available_space: Option<ElementSize>) -> Self {
-        self.layout(available_space);
         self
     }
     
@@ -165,27 +160,65 @@ impl Element for Row {
         directions
     }
 
-    fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan) {
-        self.position = Point::new(plan.child_position.x, plan.child_position.y);
-        self.size = ElementSize { 
-            width: plan.total_planned_allocation_space.horizontal(), 
-            height: self.size.height
-        };
+    // fn enact_space_allocation_plan(&mut self, plan: &ChildSpaceAllocationPlan) {
+    //     self.position = Point::new(plan.child_planned_position.x, plan.child_planned_position.y);
+    //     self.size = ElementSize { 
+    //         width: plan.total_planned_allocation_space.horizontal(), 
+    //         height: self.size.height
+    //     };
 
-        // Collect child IDs and their plans without mutating anything
-        let child_ids_and_plans: Vec<(String, ChildSpaceAllocationPlan)> = self.children.iter()
-            .map(|child| child.get_id())
-            .filter_map(|id| {
-                self.row_allocation_plan.child_space_allocation_plans.iter()
-                    .find(|cp| cp.element_id == id)
-                    .map(|cp| (id, cp.clone()))
-            })
-            .collect();
+    //     // Collect child IDs and their plans without mutating anything
+    //     let child_ids_and_plans: Vec<(String, ChildSpaceAllocationPlan)> = self.children.iter()
+    //         .map(|child| child.get_id())
+    //         .filter_map(|id| {
+    //             self.row_allocation_plan.child_space_allocation_plans.iter()
+    //                 .find(|cp| cp.element_id == id)
+    //                 .map(|cp| (id, cp.clone()))
+    //         })
+    //         .collect();
 
-        // Now, mutate children using the collected plans
-        for child in self.children.iter_mut() {
-            if let Some((_, plan)) = child_ids_and_plans.iter().find(|(child_id, _)| *child_id == child.get_id()) {
-                child.enact_space_allocation_plan(plan);
+    //     // Now, mutate children using the collected plans
+    //     for child in self.children.iter_mut() {
+    //         if let Some((_, plan)) = child_ids_and_plans.iter().find(|(child_id, _)| *child_id == child.get_id()) {
+    //             child.enact_space_allocation_plan(plan);
+    //         }
+    //     }
+    // }
+
+    fn compute_allocation_plan(&mut self) {
+        for child in self.get_children_mut().unwrap_or(&mut vec![]) {
+            child.compute_allocation_plan();
+        }
+
+        RowLayoutManager::layout_first_pass(self);
+    }
+
+    fn enact_allocation_plan(&mut self, allocated_position: Position, allocation_size: ElementSize) {
+        self.position = Point::new(allocated_position.x, allocated_position.y);
+        self.size = allocation_size.clone();
+        self.alllocated_size = Some(allocation_size.clone());
+
+        SpaceDistributionManager::distribute_row_children(self);
+
+        let mut cursor_x = allocated_position.x;
+        let mut cursor_y = allocated_position.y;
+
+        let child_plans = self.row_allocation_plan.child_space_allocation_plans
+            .iter()
+            .map(|plan| (plan.element_id.clone(), plan.child_planned_position.clone(), plan.child_planned_size.clone()))
+            .collect::<Vec<_>>();
+
+        for child in self.get_children_mut().unwrap_or(&mut vec![]) {
+            if let Some((_, position, size)) = child_plans.iter().find(|(id, _, _)| *id == child.get_id()) {
+                let child_position = Position {
+                    x: cursor_x + position.x, // Adjust by cursor position
+                    y: cursor_y + position.y,
+                };
+
+                child.enact_allocation_plan(child_position, size.clone());
+
+                
+                cursor_x += size.width;
             }
         }
     }

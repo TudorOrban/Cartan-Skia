@@ -36,7 +36,7 @@ impl SpaceAllocationPlanner {
         }).collect();
 
         child_allocation_plan.planned_allocations = space_allocations;
-        child_allocation_plan.child_position = child_position;
+        child_allocation_plan.child_planned_position = child_position;
         child_allocation_plan.total_planned_allocation_space = total_planned_allocation_space;
 
         child_allocation_plan
@@ -55,6 +55,10 @@ impl SpaceAllocationPlanner {
             space_allocation_request.requested_space.clone()
         );
 
+        if planned_allocation.request.request_type == SpaceRequestType::ChildSize {
+            child_position.x = *cursor_x;
+        }
+
         let remaining_width = *available_width - requested_width;
         if remaining_width >= 0.0 {
             *cursor_x += requested_width;
@@ -70,10 +74,6 @@ impl SpaceAllocationPlanner {
 
         planned_allocation.has_planned = true;
         planned_allocation.remaining_width = *available_width;
-        
-        if planned_allocation.request.request_type == SpaceRequestType::ChildSize {
-            child_position.x = *cursor_x - requested_width;
-        }
 
         planned_allocation
     }

@@ -45,30 +45,4 @@ impl SpaceDistributionManager {
             remaining_allocation_size.height -= child_allocation_plan.total_planned_allocation_space.vertical();
         }
     }
-
-    // Utils
-    // - To be moved
-    // fn get_needed_properties(
-    //     row: &mut Row, 
-    //     first_pass: bool
-    // ) -> (f32, f32, Margin, Padding, Border, f32) {
-    //     let available_width = if first_pass {
-    //         row.requested_size.width.clone()
-    //     } else {
-    //         row.alllocated_size.clone().unwrap_or_default().width
-    //     };
-    //     let available_height = if first_pass {
-    //         row.requested_size.height.clone()
-    //     } else {
-    //         row.alllocated_size.clone().unwrap_or_default().height
-    //     };
-        
-    //     let margin = row.styles.margin.clone().unwrap_or_default();
-    //     let padding = row.styles.padding.clone().unwrap_or_default();
-    //     let border = row.styles.border.clone().unwrap_or_default();
-    //     let spacing_x = row.get_spacing_x();
-
-    //     (available_width, available_height, margin, padding, border, spacing_x)
-    // }
-
 }

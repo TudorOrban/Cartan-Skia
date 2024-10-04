@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::{Add, Sub}};
 
-use crate::rendering::browser::internal::element_id_generator::IDGenerator;
+use crate::rendering::browser::{elements::element::ElementSize, internal::element_id_generator::IDGenerator};
 
 pub struct RowSpaceAllocationPlan {
     #[allow(dead_code)]
@@ -17,11 +17,12 @@ impl RowSpaceAllocationPlan {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChildSpaceAllocationPlan {
     pub element_id: String,
     pub planned_allocations: Vec<ChildSpacePlannedAllocation>,
-    pub child_position: Position,
+    pub child_planned_position: Position,
+    pub child_planned_size: ElementSize,
     pub total_planned_allocation_space: Space,
     pub total_allocated_space: Option<Space>,
 }
@@ -31,14 +32,15 @@ impl ChildSpaceAllocationPlan {
         Self {
             element_id,
             planned_allocations: vec![],
-            child_position: Position::default(),
+            child_planned_position: Position::default(),
+            child_planned_size: ElementSize::default(),
             total_planned_allocation_space: Space::default(),
             total_allocated_space: None,
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChildSpacePlannedAllocation {
     pub request: ChildSpaceRequest,
     pub planned_allocation_space: Space,
@@ -59,7 +61,7 @@ impl ChildSpacePlannedAllocation {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChildSpaceRequest {
     #[allow(dead_code)]
     pub id: String,
@@ -83,7 +85,7 @@ impl ChildSpaceRequest {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum SpaceRequestType {
     ChildSize,
     Spacing,
@@ -92,7 +94,7 @@ pub enum SpaceRequestType {
     Margin,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Space {
     pub top: f32,
     pub right: f32,
@@ -152,7 +154,7 @@ impl Sub for Space {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Position {
     pub x: f32,
     pub y: f32,

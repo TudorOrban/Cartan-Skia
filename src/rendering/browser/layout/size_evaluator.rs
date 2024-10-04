@@ -24,6 +24,7 @@ impl SizeEvaluator {
         let requested_row_height = SizeEvaluator::determine_requested_row_height(row.styles.size.clone().unwrap_or_default(), natural_row_height);
 
         row.size = ElementSize { width: requested_row_width, height: requested_row_height };
+        println!("Row size: {:?}", row.size.clone());
         row.natural_size = ElementSize { width: natural_row_width, height: natural_row_height };
         row.requested_size = ElementSize { width: requested_row_width, height: requested_row_height };
     }

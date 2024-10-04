@@ -45,9 +45,9 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
+            color: Some(skia_safe::Color::from_argb(255, 180, 180, 180)),
             ..Default::default()
         })
-        .request_layout(None)
     );
 
     let second_row_children: Vec<Box<dyn Element>> = vec![
@@ -85,39 +85,37 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
+            color: Some(skia_safe::Color::from_argb(255, 60, 60, 60)),
             ..Default::default()
         })
-        .request_layout(None)
     );
 
     let total_row: Box<dyn Element> = Box::new(Row::new()
         .add_child(first_row)
         .add_child(second_row)
         .set_styles(Styles {
-            spacing: Some(Spacing { spacing_x: 10.0, spacing_y: 0.0 }),
-            alignment: Some(RowItemsAlignment::End),
-            margin: Some(Margin {
-                top: 100.0,
-                right: 20.0,
-                bottom: 10.0,
-                left: 10.0,
-            }),
-            padding: Some(Padding {
-                top: 20.0,
-                right: 120.0,
-                bottom: 10.0,
-                left: 10.0,
-            }),
+            spacing: Some(Spacing { spacing_x: 20.0, spacing_y: 0.0 }),
+            // alignment: Some(RowItemsAlignment::End),
+            // margin: Some(Margin {
+            //     top: 20.0,
+            //     right: 20.0,
+            //     bottom: 20.0,
+            //     left: 20.0,
+            // }),
+            // padding: Some(Padding {
+            //     top: 20.0,
+            //     right: 20.0,
+            //     bottom: 20.0,
+            //     left: 20.0,
+            // }),
             border: Some(Border {
                 width: 2.0,
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
-            color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
+            // color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
             ..Default::default()
         })
-        .request_layout(None)
-        .request_layout(Some(ElementSize { width: 400.0, height: 300.0 }))
     );
     
     total_row

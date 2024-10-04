@@ -1,7 +1,6 @@
-use skia_safe::{Point, Point3};
+use skia_safe::Point;
 
 use crate::rendering::browser::elements::row::Row;
-
 
 
 pub struct SpaceAllocationPlanEnacter {
@@ -16,13 +15,10 @@ impl SpaceAllocationPlanEnacter {
             let child_plan = row.row_allocation_plan.child_space_allocation_plans
                 .iter().find(|child_plan| child_plan.element_id == child.get_id())
                 .unwrap();
+            println!("Child position: {:?}", child_plan.child_planned_position);
 
-            child.set_position(Point::new(child_plan.child_position.x, child_plan.child_position.y));
-
-            for grand_child in child.get_children_mut().unwrap_or(&mut vec![]).iter_mut() {
-                
-            }
-
+            child.set_position(Point::new(child_plan.child_planned_position.x, child_plan.child_planned_position.y));
+            child.set_size(child_plan.child_planned_size.clone());
         }
     }
 }

@@ -6,7 +6,7 @@ use skia_safe::{
 use winit::window::Window;
 use skia_safe::gpu::DirectContext;
 
-use super::{browser::ui_body::get_ui_body, webpage_renderer::WebPageRenderer};
+use super::{browser::{elements::element::{Element, ElementSize}, layout::types::Position, ui_body::get_ui_body}, webpage_renderer::WebPageRenderer};
 
 pub struct Renderer {
     pub surface: Surface,
@@ -23,7 +23,14 @@ impl Renderer {
             sample_count,
             stencil_bits,
         );
-        let ui_body = get_ui_body();
+        let mut ui_body: Box<dyn Element> = get_ui_body();
+        let screen_size = window.inner_size();
+        ui_body.compute_allocation_plan(); // Start backwards recursion to plan space allocations
+        ui_body.enact_allocation_plan( // Start forwards recursion to allocate space
+            Position { x: 0.0, y: 0.0 },
+            ElementSize { width: screen_size.width as f32, height: screen_size.height as f32 
+        });
+
 
         Self { 
             surface,
