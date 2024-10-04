@@ -94,14 +94,14 @@ pub fn get_ui_body() -> Box<dyn Element> {
         .add_child(first_row)
         .add_child(second_row)
         .set_styles(Styles {
-            spacing: Some(Spacing { spacing_x: 20.0, spacing_y: 0.0 }),
+            spacing: Some(Spacing { spacing_x: 40.0, spacing_y: 0.0 }),
             // alignment: Some(RowItemsAlignment::End),
-            // margin: Some(Margin {
-            //     top: 20.0,
-            //     right: 20.0,
-            //     bottom: 20.0,
-            //     left: 20.0,
-            // }),
+            margin: Some(Margin {
+                top: 20.0,
+                right: 20.0,
+                bottom: 20.0,
+                left: 20.0,
+            }),
             // padding: Some(Padding {
             //     top: 20.0,
             //     right: 20.0,
@@ -113,7 +113,7 @@ pub fn get_ui_body() -> Box<dyn Element> {
                 color: skia_safe::Color::from_argb(255, 0, 0, 0),
                 ..Default::default()
             }),
-            // color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
+            color: Some(skia_safe::Color::from_argb(255, 120, 120, 120)),
             ..Default::default()
         })
     );
