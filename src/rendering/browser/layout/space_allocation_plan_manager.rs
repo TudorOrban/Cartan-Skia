@@ -1,20 +1,20 @@
 
 use crate::rendering::browser::elements::{row::Row, styles::Padding};
 use crate::rendering::browser::elements::element::Element;
-use super::{space_allocator::SpaceAllocator, space_requester::SpaceRequester, types::RowSpaceAllocationPlan};
+use super::{space_allocation_planner::SpaceAllocationPlanner, space_requester::SpaceRequester, types::RowSpaceAllocationPlan};
 
 
-pub struct RowSpaceAllocationManager {
+pub struct SpaceAllocationPlanManager {
 
 }
 
-impl RowSpaceAllocationManager {
+impl SpaceAllocationPlanManager {
 
-    pub fn allocate_space_to_row_children(row: &mut Row) {
-        let mut plan = RowSpaceAllocationPlan::new(row.get_id());
+    pub fn plan_row_allocation(row: &mut Row) {
+        let mut plan: RowSpaceAllocationPlan = RowSpaceAllocationPlan::new(row.get_id());
 
         let (mut available_width, available_height, padding, spacing_x) = 
-            RowSpaceAllocationManager::get_needed_properties(row);
+            SpaceAllocationPlanManager::get_needed_properties(row);
 
         let mut cursor_x = row.position.x + padding.left;
         let base_y = row.position.y + padding.top;
@@ -25,13 +25,15 @@ impl RowSpaceAllocationManager {
                 child, index, number_of_children, spacing_x, &padding
             );
             
-            let child_allocation_plan = SpaceAllocator::allocate_child_spaces(
+            let child_allocation_plan = SpaceAllocationPlanner::plan_child_space_allocations(
                 child, space_allocation_requests, &mut available_width, &mut cursor_x, 
                 &row.styles.alignment, available_height, base_y
             );
             
             plan.child_space_allocation_plans.push(child_allocation_plan);
         }
+
+        row.row_allocation_plan = plan;
     }
     
     // Utils

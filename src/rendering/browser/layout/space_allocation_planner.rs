@@ -1,15 +1,15 @@
 use crate::rendering::browser::elements::{element::Element, styles::RowItemsAlignment};
 
-use super::types::{ChildSpaceAllocation, ChildSpaceAllocationPlan, ChildSpaceRequest, Position, Space, SpaceRequestType};
+use super::types::{ChildSpacePlannedAllocation, ChildSpaceAllocationPlan, ChildSpaceRequest, Position, Space, SpaceRequestType};
 
 
-pub struct SpaceAllocator {
+pub struct SpaceAllocationPlanner {
 
 }
 
-impl SpaceAllocator {
+impl SpaceAllocationPlanner {
 
-    pub fn allocate_child_spaces(
+    pub fn plan_child_space_allocations(
         child: &Box<dyn Element>,
         space_allocation_requests: Vec<ChildSpaceRequest>,
         available_width: &mut f32,
@@ -22,11 +22,11 @@ impl SpaceAllocator {
         let mut child_position = Position::default();
         let mut total_planned_allocation_space = Space::default();
         
-        let child_y_position = SpaceAllocator::allocate_child_y_space(child, alignment, available_height, base_y);
+        let child_y_position = SpaceAllocationPlanner::plan_child_y_allocation_space(child, alignment, available_height, base_y);
         child_position.y = child_y_position;
         
-        let space_allocations: Vec<ChildSpaceAllocation> = space_allocation_requests.into_iter().map(|request| {
-            let allocation = SpaceAllocator::allocate_child_x_space(
+        let space_allocations: Vec<ChildSpacePlannedAllocation> = space_allocation_requests.into_iter().map(|request| {
+            let allocation = SpaceAllocationPlanner::plan_child_x_allocation_space(
                 available_width, cursor_x, &mut child_position, request
             );
 
@@ -35,22 +35,22 @@ impl SpaceAllocator {
             allocation
         }).collect();
 
-        child_allocation_plan.child_allocations = space_allocations;
+        child_allocation_plan.planned_allocations = space_allocations;
         child_allocation_plan.child_position = child_position;
         child_allocation_plan.total_planned_allocation_space = total_planned_allocation_space;
 
         child_allocation_plan
     }
 
-    fn allocate_child_x_space(
+    fn plan_child_x_allocation_space(
         available_width: &mut f32,
         cursor_x: &mut f32,
         child_position: &mut Position,
         space_allocation_request: ChildSpaceRequest,
-    ) -> ChildSpaceAllocation {
-        let mut allocation = ChildSpaceAllocation::new(space_allocation_request.clone());
+    ) -> ChildSpacePlannedAllocation {
+        let mut planned_allocation = ChildSpacePlannedAllocation::new(space_allocation_request.clone());
 
-        let requested_width = SpaceAllocator::get_requested_width(
+        let requested_width = SpaceAllocationPlanner::get_requested_width(
             space_allocation_request.request_type.clone(),
             space_allocation_request.requested_space.clone()
         );
@@ -59,23 +59,23 @@ impl SpaceAllocator {
         if remaining_width >= 0.0 {
             *cursor_x += requested_width;
             *available_width -= requested_width;
-            allocation.planned_allocation_space = space_allocation_request.requested_space.clone();
-            allocation.deficit = Space::default();
+            planned_allocation.planned_allocation_space = space_allocation_request.requested_space.clone();
+            planned_allocation.deficit = Space::default();
         } else {
             *cursor_x += *available_width;
             *available_width = 0.0;
-            allocation.planned_allocation_space = Space { left: *available_width, right: 0.0, ..Default::default() };
-            allocation.deficit = Space { left: -remaining_width, right: 0.0, ..Default::default() };
+            planned_allocation.planned_allocation_space = Space { left: *available_width, right: 0.0, ..Default::default() };
+            planned_allocation.deficit = Space { left: -remaining_width, right: 0.0, ..Default::default() };
         }
 
-        allocation.has_planned = true;
-        allocation.remaining_width = *available_width;
+        planned_allocation.has_planned = true;
+        planned_allocation.remaining_width = *available_width;
         
-        if allocation.request.request_type == SpaceRequestType::ChildSize {
+        if planned_allocation.request.request_type == SpaceRequestType::ChildSize {
             child_position.x = *cursor_x - requested_width;
         }
 
-        allocation
+        planned_allocation
     }
 
     fn get_requested_width(
@@ -91,7 +91,7 @@ impl SpaceAllocator {
         }
     }
 
-    fn allocate_child_y_space(
+    fn plan_child_y_allocation_space(
         child: &Box<dyn Element>,
         alignment: &Option<RowItemsAlignment>,
         available_height: f32,

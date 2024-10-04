@@ -13,7 +13,6 @@ impl SizeEvaluator {
             SizeEvaluator::get_child_effective_width(child)).sum::<f32>();
         let max_children_height = row.children.iter().map(|child| child.get_size().height)
             .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)).unwrap_or(0.0);
-        println!("Max children height: {}", max_children_height);
 
         let padding = row.styles.padding.clone().unwrap_or_default();
         let border = row.styles.border.clone().unwrap_or_default();

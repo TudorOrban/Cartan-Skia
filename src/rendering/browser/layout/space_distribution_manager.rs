@@ -1,17 +1,18 @@
 use crate::rendering::browser::elements::{element::ElementSize, row::Row};
 use crate::rendering::browser::layout::types::VerticalHorizontal;
 
+use super::space_allocation_plan_enacter::SpaceAllocationPlanEnacter;
 use super::space_deficit_resolver::SpaceDeficitResolver;
 use super::types::ChildSpaceAllocationPlan;
 
 
 
-pub struct RowSpaceDistributor {
+pub struct SpaceDistributionManager {
     
     
 }
 
-impl RowSpaceDistributor {
+impl SpaceDistributionManager {
 
     pub fn distribute_row_children(row: &mut Row) {
         let mut remaining_allocation_size = row.alllocated_size.clone().unwrap_or_default();
@@ -25,8 +26,9 @@ impl RowSpaceDistributor {
             }; 
 
             let report = SpaceDeficitResolver::resolve_space_deficit(row, &mut remaining_allocation_size);
+            row.deficit_resolution_report = Some(report);
 
-            
+            SpaceAllocationPlanEnacter::enact_row_allocation_plan(row);
         } else {
             // Check if special layout properties are set, eg Fill, Justify, etc
         }

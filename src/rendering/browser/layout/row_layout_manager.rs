@@ -1,6 +1,6 @@
 use crate::rendering::browser::elements::{element::ElementSize, row::Row};
 
-use super::{size_evaluator::SizeEvaluator, space_allocation_manager::RowSpaceAllocationManager, space_distributor::RowSpaceDistributor};
+use super::{size_evaluator::SizeEvaluator, space_allocation_plan_manager::SpaceAllocationPlanManager, space_distribution_manager::SpaceDistributionManager};
 
 
 pub struct RowLayoutManager {
@@ -29,13 +29,13 @@ impl RowLayoutManager {
     pub fn layout_first_pass(row: &mut Row) {
         SizeEvaluator::determine_row_sizes(row);
 
-        RowSpaceAllocationManager::allocate_space_to_row_children(row);
+        SpaceAllocationPlanManager::plan_row_allocation(row);
     }
 
     pub fn layout_second_pass(row: &mut Row, allocated_size: ElementSize) {
         row.alllocated_size = Some(allocated_size);
 
-        RowSpaceDistributor::distribute_row_children(row);
+        SpaceDistributionManager::distribute_row_children(row);
     }
 
 

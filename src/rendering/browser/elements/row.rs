@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Color, Paint, Point, Rect, PaintStyle};
 
-use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{layout_manager::RowLayoutManager, types::RowSpaceAllocationPlan}};
+use crate::rendering::browser::{internal::element_id_generator::IDGenerator, layout::{row_layout_manager::RowLayoutManager, types::{DeficitResolutionReport, RowSpaceAllocationPlan}}};
 
 use super::{element::{Element, ElementSize, EventType}, styles::{Directions, Margin, RowItemsAlignment, Spacing, Styles}};
 
@@ -14,6 +14,7 @@ pub struct Row {
     pub requested_size: ElementSize,
     pub alllocated_size: Option<ElementSize>,
     pub row_allocation_plan: RowSpaceAllocationPlan,
+    pub deficit_resolution_report: Option<DeficitResolutionReport>,
     pub styles: Styles,
 }
 
@@ -29,6 +30,7 @@ impl Row {
             requested_size: ElementSize::default(),
             alllocated_size: None,
             row_allocation_plan: RowSpaceAllocationPlan::new(id),
+            deficit_resolution_report: None,
             styles: Styles::default(),
         }
     }

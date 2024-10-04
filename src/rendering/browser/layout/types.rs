@@ -20,7 +20,7 @@ impl RowSpaceAllocationPlan {
 #[derive(Clone)]
 pub struct ChildSpaceAllocationPlan {
     pub element_id: String,
-    pub child_allocations: Vec<ChildSpaceAllocation>,
+    pub planned_allocations: Vec<ChildSpacePlannedAllocation>,
     pub child_position: Position,
     pub total_planned_allocation_space: Space,
     pub total_allocated_space: Option<Space>,
@@ -30,7 +30,7 @@ impl ChildSpaceAllocationPlan {
     pub fn new(element_id: String) -> Self {
         Self {
             element_id,
-            child_allocations: vec![],
+            planned_allocations: vec![],
             child_position: Position::default(),
             total_planned_allocation_space: Space::default(),
             total_allocated_space: None,
@@ -39,7 +39,7 @@ impl ChildSpaceAllocationPlan {
 }
 
 #[derive(Clone)]
-pub struct ChildSpaceAllocation {
+pub struct ChildSpacePlannedAllocation {
     pub request: ChildSpaceRequest,
     pub planned_allocation_space: Space,
     pub deficit: Space,
@@ -47,7 +47,7 @@ pub struct ChildSpaceAllocation {
     pub remaining_width: f32,
 }
 
-impl ChildSpaceAllocation {
+impl ChildSpacePlannedAllocation {
     pub fn new(request: ChildSpaceRequest) -> Self {
         Self {
             request,
